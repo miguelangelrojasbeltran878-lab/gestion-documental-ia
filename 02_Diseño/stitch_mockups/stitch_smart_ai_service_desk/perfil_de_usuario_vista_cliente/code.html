@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Perfil de Usuario - Portal de Soporte AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary": "#4b41e1",
+                      "tertiary-container": "#bc4800",
+                      "on-secondary-container": "#fffbff",
+                      "tertiary": "#943700",
+                      "outline": "#737686",
+                      "primary": "#004ac6",
+                      "surface-dim": "#d9d9e5",
+                      "surface-tint": "#0053db",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "on-secondary-fixed-variant": "#3323cc",
+                      "surface-variant": "#e1e2ed",
+                      "primary-container": "#2563eb",
+                      "error": "#ba1a1a",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-fixed-dim": "#c3c0ff",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "on-primary-fixed": "#00174b",
+                      "secondary-container": "#645efb",
+                      "surface-container-high": "#e7e7f3",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "inverse-primary": "#b4c5ff",
+                      "on-tertiary-container": "#ffede6",
+                      "background": "#faf8ff",
+                      "on-primary-container": "#eeefff",
+                      "on-error-container": "#93000a",
+                      "surface-bright": "#faf8ff",
+                      "surface": "#faf8ff",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "surface-container-highest": "#e1e2ed",
+                      "on-tertiary-fixed": "#360f00",
+                      "inverse-on-surface": "#f0f0fb",
+                      "tertiary-fixed": "#ffdbcd",
+                      "on-surface-variant": "#434655",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed": "#e2dfff",
+                      "outline-variant": "#c3c6d7",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#dbe1ff",
+                      "on-secondary-fixed": "#0f0069",
+                      "on-secondary": "#ffffff",
+                      "surface-container-low": "#f3f3fe",
+                      "on-surface": "#191b23",
+                      "inverse-surface": "#2e3039",
+                      "on-tertiary": "#ffffff",
+                      "surface-container": "#ededf9",
+                      "on-error": "#ffffff",
+                      "on-background": "#191b23"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "md": "16px",
+                      "xl": "32px",
+                      "sm": "8px",
+                      "container-max": "1280px",
+                      "3xl": "64px",
+                      "2xl": "48px",
+                      "lg": "24px",
+                      "sidebar-width": "260px",
+                      "base": "4px",
+                      "xs": "4px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "label-md": ["Inter"],
+                      "headline-sm": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Inter"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                      "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "500"}],
+                      "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                      "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.25", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+        .card-shadow { box-shadow: 0 1px 3px rgba(0, 74, 198, 0.05); }
+        .hover-card-shadow:hover { box-shadow: 0 4px 6px rgba(0, 74, 198, 0.1); }
+      </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-md text-body-md flex flex-col md:flex-row">
+<!-- Mobile Top Navigation -->
+<header class="md:hidden bg-surface dark:bg-surface-dim shadow-sm dark:shadow-none docked full-width top-0 z-50">
+<div class="flex justify-between items-center w-full px-lg py-sm max-w-container-max mx-auto border-b border-outline-variant dark:border-outline">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-2xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">psychiatry</span>
+<span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">Portal de Soporte AI</span>
+</div>
+<div class="flex gap-md">
+<button class="text-on-surface-variant hover:bg-surface-container-low transition-colors p-sm rounded-full opacity-80">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-primary hover:bg-surface-container-low transition-colors p-sm rounded-full opacity-80">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Desktop Side Navigation -->
+<aside class="hidden md:flex flex-col h-screen w-sidebar-width fixed left-0 top-0 bg-surface dark:bg-surface-dim border-r border-outline-variant dark:border-outline py-lg z-40">
+<div class="px-lg mb-xl flex items-center gap-md">
+<img alt="Usuario" class="w-10 h-10 rounded-full object-cover" data-alt="A small, professional avatar image of an AI assistant logo. It features a sleek, minimalist geometric icon representing artificial intelligence, primarily in deep primary blue and pristine white, fitting a clean, corporate light-mode modern UI aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKtBxxLogxhPDqjIrqPu22yXr6tehSESZbsywtx0Eqz_uAHPXJ0kBIVoHEu9Pd7eR2VQV4Z7-N5X6DegT8RDsEr6mc4RZyuUQvg9dRYsBAm4kWWrgQVQmJvFEsIN2uI89XthqN4_-C0k2TZpyq6kVvdtS5tdhn7LHCqrPiZKh-28pJ_1_XSPEk2zNC0__j-xWqVWqSlBR5IdaMO3mMAqorsHy4foMHDbMD_DXypLEvktrEqAFPp4Mc4A"/>
+<div>
+<h1 class="text-headline-sm font-headline-sm font-bold text-primary">Portal de Soporte</h1>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Asistente AI Activo</p>
+</div>
+</div>
+<nav class="flex-1 px-sm space-y-sm">
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+<span class="text-label-md font-label-md">Mis Tickets</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="text-label-md font-label-md">Nueva Solicitud</span>
+</a>
+<a class="flex items-center gap-md bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-lg px-md py-sm border-l-4 border-primary scale-95 duration-150 transition-all shadow-sm" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-label-md font-label-md font-bold">Perfil</span>
+</a>
+</nav>
+<div class="px-sm mt-auto">
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-label-md font-label-md">Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 md:ml-[260px] p-lg md:p-xl max-w-container-max mx-auto w-full mt-16 md:mt-0">
+<!-- Page Header -->
+<div class="mb-xl">
+<h2 class="text-headline-lg font-headline-lg text-on-surface mb-sm">Perfil de Usuario</h2>
+<p class="text-body-md font-body-md text-on-surface-variant">Gestiona tu información personal, preferencias y seguridad de cuenta.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+<!-- Left Column: Profile Card -->
+<div class="lg:col-span-1 flex flex-col gap-lg">
+<!-- User Info Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg card-shadow flex flex-col items-center text-center">
+<div class="relative mb-md">
+<img class="w-24 h-24 rounded-full object-cover border-4 border-surface-container-low shadow-sm" data-alt="A professional headshot portrait of a modern corporate employee. The individual is smiling softly, dressed in clean, sharp business casual attire. The lighting is soft and flattering, set against a bright, pristine white studio background, perfectly suited for a high-end corporate application profile picture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuATL8qSwceRWtJBhZOUf6oTvU_R9ZY1ieKFKnYJ_lSWOCAzcBUqMyci7wm5fLlog9myZVFd_MJCJ8WLwMp76KMIxo1iYXQzXRP52l-gIQNYNSVBc_M9laqiy_JN8ZpfwWlj_1zBq88zZ0Cs0CDmgqyaxoKh2sxhZS22RnJXnaAKWgIHJl9A6RM6wBfovN7FaWBZSOac7X1MipYaJLsh0z_8xrJXf43UysQuBEev0_YrPjaroXx1Yo3vYg"/>
+<button class="absolute bottom-0 right-0 bg-primary-container text-on-primary-container p-sm rounded-full shadow-md hover:bg-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="edit">edit</span>
+</button>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface font-bold">Elena Rodriguez</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mb-md">elena.rodriguez@empresa.com</p>
+<div class="w-full border-t border-outline-variant pt-md mt-sm flex justify-between px-md text-left">
+<div>
+<p class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Departamento</p>
+<p class="text-body-sm font-body-sm text-on-surface font-medium">Tecnología</p>
+</div>
+<div class="text-right">
+<p class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Rol</p>
+<p class="text-body-sm font-body-sm text-on-surface font-medium">Administrador</p>
+</div>
+</div>
+</div>
+<!-- Account Status Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md card-shadow flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="bg-green-100 text-green-700 p-sm rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+</div>
+<div>
+<p class="text-label-md font-label-md text-on-surface">Estado de Cuenta</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Activa y Verificada</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Settings Sections -->
+<div class="lg:col-span-2 flex flex-col gap-lg">
+<!-- Personal Information Form -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg card-shadow">
+<div class="flex items-center justify-between mb-lg border-b border-outline-variant pb-md">
+<h3 class="text-headline-sm font-headline-sm text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="manage_accounts">manage_accounts</span>
+                            Información Personal
+                        </h3>
+</div>
+<form class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="flex flex-col gap-sm">
+<label class="text-label-md font-label-md text-on-surface">Nombre</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-sm text-body-md font-body-md text-on-surface focus:border-primary focus:ring-2 focus:ring-inverse-primary transition-all shadow-sm" type="text" value="Elena"/>
+</div>
+<div class="flex flex-col gap-sm">
+<label class="text-label-md font-label-md text-on-surface">Apellidos</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-sm text-body-md font-body-md text-on-surface focus:border-primary focus:ring-2 focus:ring-inverse-primary transition-all shadow-sm" type="text" value="Rodriguez"/>
+</div>
+<div class="flex flex-col gap-sm md:col-span-2">
+<label class="text-label-md font-label-md text-on-surface">Correo Electrónico</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-sm text-body-md font-body-md text-on-surface focus:border-primary focus:ring-2 focus:ring-inverse-primary transition-all shadow-sm bg-surface-container-low text-on-surface-variant cursor-not-allowed" disabled="" type="email" value="elena.rodriguez@empresa.com"/>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Contacte a soporte para cambiar el correo principal.</p>
+</div>
+<div class="md:col-span-2 flex justify-end mt-sm">
+<button class="bg-primary-container text-on-primary-container font-label-md text-label-md py-sm px-lg rounded-lg hover:bg-primary transition-colors shadow-sm" type="button">
+                                Guardar Cambios
+                            </button>
+</div>
+</form>
+</div>
+<!-- Notifications & Security Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<!-- Notification Preferences -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg card-shadow flex flex-col h-full">
+<div class="mb-md border-b border-outline-variant pb-md">
+<h3 class="text-headline-sm font-headline-sm text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="notifications_active">notifications_active</span>
+                                Notificaciones
+                            </h3>
+</div>
+<div class="flex-1 space-y-md">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-label-md font-label-md text-on-surface">Actualizaciones de Tickets</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Alertas sobre cambios de estado</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="text-label-md font-label-md text-on-surface">Sugerencias AI</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Recomendaciones automáticas</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="text-label-md font-label-md text-on-surface">Boletín de Plataforma</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Noticias y actualizaciones</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Security Section -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg card-shadow flex flex-col h-full">
+<div class="mb-md border-b border-outline-variant pb-md">
+<h3 class="text-headline-sm font-headline-sm text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="lock">lock</span>
+                                Seguridad
+                            </h3>
+</div>
+<div class="flex-1 flex flex-col gap-md">
+<div class="flex flex-col gap-xs">
+<label class="text-label-md font-label-md text-on-surface">Contraseña Actual</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-sm text-body-md font-body-md text-on-surface focus:border-primary focus:ring-2 focus:ring-inverse-primary transition-all shadow-sm" placeholder="••••••••" type="password"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="text-label-md font-label-md text-on-surface">Nueva Contraseña</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-sm text-body-md font-body-md text-on-surface focus:border-primary focus:ring-2 focus:ring-inverse-primary transition-all shadow-sm" placeholder="Mínimo 8 caracteres" type="password"/>
+</div>
+<div class="mt-auto pt-sm flex justify-end">
+<button class="border border-outline-variant bg-surface-container-lowest text-on-surface font-label-md text-label-md py-sm px-lg rounded-lg hover:bg-surface-container-low transition-colors shadow-sm" type="button">
+                                    Actualizar
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

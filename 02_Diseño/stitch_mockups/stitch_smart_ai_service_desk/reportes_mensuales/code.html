@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reporte Mensual de Gestión - EduSupport AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed": "#ffdbcd",
+                      "outline-variant": "#c3c6d7",
+                      "error": "#ba1a1a",
+                      "on-background": "#191b23",
+                      "secondary-container": "#645efb",
+                      "inverse-on-surface": "#f0f0fb",
+                      "primary-container": "#2563eb",
+                      "surface-container": "#ededf9",
+                      "outline": "#737686",
+                      "surface-container-low": "#f3f3fe",
+                      "background": "#faf8ff",
+                      "on-secondary": "#ffffff",
+                      "on-surface-variant": "#434655",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "on-tertiary": "#ffffff",
+                      "tertiary": "#943700",
+                      "surface-container-lowest": "#ffffff",
+                      "on-error": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "surface": "#faf8ff",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed": "#0f0069",
+                      "tertiary-container": "#bc4800",
+                      "secondary-fixed": "#e2dfff",
+                      "on-primary-container": "#eeefff",
+                      "primary": "#004ac6",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "error-container": "#ffdad6",
+                      "surface-bright": "#faf8ff",
+                      "secondary-fixed-dim": "#c3c0ff",
+                      "surface-tint": "#0053db",
+                      "inverse-surface": "#2e3039",
+                      "surface-dim": "#d9d9e5",
+                      "secondary": "#4b41e1",
+                      "on-secondary-container": "#fffbff",
+                      "on-primary-fixed": "#00174b",
+                      "surface-container-high": "#e7e7f3",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "primary-fixed": "#dbe1ff",
+                      "surface-container-highest": "#e1e2ed",
+                      "inverse-primary": "#b4c5ff",
+                      "on-surface": "#191b23",
+                      "on-tertiary-container": "#ffede6",
+                      "surface-variant": "#e1e2ed",
+                      "on-tertiary-fixed": "#360f00",
+                      "on-secondary-fixed-variant": "#3323cc"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "container-max": "1280px",
+                      "base": "4px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "3xl": "64px",
+                      "md": "16px",
+                      "gutter": "24px",
+                      "sm": "8px",
+                      "2xl": "48px",
+                      "sidebar-width": "260px"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.25",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+</head>
+<body class="bg-[#F8FAFC] text-on-background font-body-md text-body-md antialiased h-screen overflow-hidden flex">
+<!-- SideNavBar -->
+<nav class="hidden md:flex bg-surface dark:bg-on-background fixed left-0 top-0 h-screen w-sidebar-width flex-col border-r border-outline-variant dark:border-outline z-20">
+<!-- Header -->
+<div class="px-lg py-xl flex items-center gap-md border-b border-outline-variant dark:border-outline">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined" data-icon="school" data-weight="fill" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<div>
+<h1 class="text-headline-md font-headline-md text-primary dark:text-primary-fixed-dim">EduSupport AI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Academic Excellence</p>
+</div>
+</div>
+<!-- Main Nav -->
+<div class="flex-1 py-lg overflow-y-auto space-y-2 px-md">
+<a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-lg py-md hover:bg-surface-container dark:hover:bg-inverse-surface rounded-lg font-label-md text-label-md transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-lg py-md hover:bg-surface-container dark:hover:bg-inverse-surface rounded-lg font-label-md text-label-md transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+                Tickets
+            </a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-lg py-md hover:bg-surface-container dark:hover:bg-inverse-surface rounded-lg font-label-md text-label-md transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Clients
+            </a>
+<a class="flex items-center gap-md bg-secondary-fixed dark:bg-secondary-container text-on-secondary-fixed-variant dark:text-on-secondary-container border-l-4 border-primary px-lg py-md rounded-r-lg font-label-md text-label-md transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics" data-weight="fill" style="font-variation-settings: 'FILL' 1;">analytics</span>
+                Reports
+            </a>
+</div>
+<!-- Footer Nav -->
+<div class="border-t border-outline-variant dark:border-outline p-md space-y-2">
+<a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-lg py-md hover:bg-surface-container dark:hover:bg-inverse-surface rounded-lg font-label-md text-label-md transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+                Profile
+            </a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-lg py-md hover:bg-surface-container dark:hover:bg-inverse-surface rounded-lg font-label-md text-label-md transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-[260px] h-screen flex flex-col relative bg-[#F8FAFC]">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 left-0 md:left-[260px] flex justify-between items-center px-lg h-xl z-10 bg-surface/80 backdrop-blur-md border-b border-outline-variant dark:border-outline">
+<!-- Mobile Menu Toggle (Visible only on mobile) -->
+<button class="md:hidden p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<!-- Brand / Product Name -->
+<div class="flex items-center">
+<span class="text-headline-sm font-headline-sm font-bold text-on-surface dark:text-on-surface-variant">Support Portal</span>
+</div>
+<!-- Search Bar (on_left configuration) -->
+<div class="hidden sm:flex items-center flex-1 max-w-md mx-lg">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm" placeholder="Search reports..." type="text"/>
+</div>
+</div>
+<!-- Trailing Actions & Profile -->
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined" data-icon="dark_mode">dark_mode</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden ml-sm cursor-pointer border-2 border-transparent hover:border-primary transition-colors">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A close-up, high-quality portrait of a professional individual serving as a user avatar, set against a clean, modern light-mode background. The lighting is soft and flattering, highlighting a friendly and approachable expression. The color palette incorporates subtle tones that harmonize with a sophisticated corporate aesthetic, conveying trust and reliability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVS0j7dfXEjhUC2S54w6FPC42WGhUzd0eKKgtlmpYBuWbUUjYGY7P69hq0wH2eKtUBjLZlNaz1bkoMT344TC4Qcgf_pQfVeATaEDytwe9Yzvyyf30QBo-qma528UBSYU3pNJ3pMdi7K2jG1MYqeAJ5kcc5R6TaDyN7z2r1PCdtNqdzl_DJk0YtX2M2nvDVckoYb3E36xLjQcAs95Xh_oR0SI_erq7Bhc1jESkG7ckG4Xto-hxVIUyYSQ"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="flex-1 mt-xl p-md md:p-lg lg:p-xl overflow-y-auto">
+<div class="max-w-container-max mx-auto space-y-lg">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-lg">
+<div>
+<h2 class="text-headline-lg font-headline-lg md:font-headline-lg-mobile md:text-headline-lg-mobile text-on-background">Reporte Mensual de Gestión</h2>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">Resumen del rendimiento y métricas clave de soporte.</p>
+</div>
+<button class="inline-flex items-center justify-center gap-sm px-6 py-2.5 bg-[#2563EB] text-white rounded-lg font-label-md text-label-md shadow-md hover:shadow-lg hover:bg-primary-fixed-variant transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary whitespace-nowrap">
+<span class="material-symbols-outlined text-[20px]" data-icon="download">download</span>
+                        Exportar Reporte (PDF/Excel)
+                    </button>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
+<!-- Top Row: Metrics (Span 4 cols each on large screens) -->
+<div class="md:col-span-6 lg:col-span-4 bg-white rounded-xl border border-[#E2E8F0] p-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-lg opacity-20 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[48px] text-primary" data-icon="forum">forum</span>
+</div>
+<div class="relative z-10">
+<h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider mb-2">Total solicitudes del mes</h3>
+<div class="flex items-baseline gap-2">
+<span class="text-display-lg font-display-lg text-on-background">1,248</span>
+<span class="text-label-md font-label-md text-emerald-600 flex items-center">
+<span class="material-symbols-outlined text-[16px]" data-icon="trending_up">trending_up</span>
+                                    12%
+                                </span>
+</div>
+<p class="text-body-sm font-body-sm text-outline mt-2">vs mes anterior</p>
+</div>
+</div>
+<div class="md:col-span-6 lg:col-span-4 bg-white rounded-xl border border-[#E2E8F0] p-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-lg opacity-20 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[48px] text-secondary" data-icon="schedule">schedule</span>
+</div>
+<div class="relative z-10">
+<h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider mb-2">Tiempo medio de respuesta</h3>
+<div class="flex items-baseline gap-2">
+<span class="text-display-lg font-display-lg text-on-background">1.4h</span>
+<span class="text-label-md font-label-md text-emerald-600 flex items-center">
+<span class="material-symbols-outlined text-[16px]" data-icon="trending_down">trending_down</span>
+                                    5%
+                                </span>
+</div>
+<p class="text-body-sm font-body-sm text-outline mt-2">vs objetivo de 2.0h</p>
+</div>
+</div>
+<!-- Chart 1: Status Pie (Span 4 cols) -->
+<div class="md:col-span-12 lg:col-span-4 bg-white rounded-xl border border-[#E2E8F0] p-lg shadow-sm flex flex-col">
+<div class="flex items-center justify-between mb-md">
+<h3 class="text-headline-sm font-headline-sm text-on-background">Tickets por Estado</h3>
+<button class="text-outline hover:text-primary"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
+</div>
+<div class="flex-1 relative min-h-[200px] flex items-center justify-center">
+<canvas id="statusChart"></canvas>
+</div>
+</div>
+<!-- Chart 3: Daily Volume (Area Chart - Full Width) -->
+<div class="md:col-span-12 lg:col-span-8 bg-white rounded-xl border border-[#E2E8F0] p-lg shadow-sm flex flex-col">
+<div class="flex items-center justify-between mb-md">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-background">Volumen de Solicitudes Diarias</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Tendencia a lo largo del mes actual</p>
+</div>
+<div class="flex gap-2 bg-surface-container-low rounded-lg p-1 border border-outline-variant">
+<button class="px-3 py-1 rounded text-label-sm font-label-sm bg-white shadow-sm border border-[#E2E8F0] text-primary">Mes</button>
+<button class="px-3 py-1 rounded text-label-sm font-label-sm text-on-surface-variant hover:bg-surface-container">Semana</button>
+</div>
+</div>
+<div class="flex-1 relative min-h-[300px] w-full">
+<canvas id="volumeChart"></canvas>
+</div>
+</div>
+<!-- Chart 2: Priority Bar (Span 4 cols) -->
+<div class="md:col-span-12 lg:col-span-4 bg-white rounded-xl border border-[#E2E8F0] p-lg shadow-sm flex flex-col">
+<div class="flex items-center justify-between mb-md">
+<h3 class="text-headline-sm font-headline-sm text-on-background">Tickets por Prioridad</h3>
+<button class="text-outline hover:text-primary"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
+</div>
+<div class="flex-1 relative min-h-[300px]">
+<canvas id="priorityChart"></canvas>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Chart.js Configuration
+        document.addEventListener('DOMContentLoaded', function() {
+            // Common Options
+            Chart.defaults.font.family = 'Inter, sans-serif';
+            Chart.defaults.color = '#737686';
+            const primaryColor = '#2563EB'; // tailwind primary
+            const secondaryColor = '#645EFB'; // tailwind secondary-container
+            const tertiaryColor = '#bc4800'; // tailwind tertiary-container
+            const gridColor = '#E2E8F0';
+
+            // Chart 1: Status (Doughnut instead of Pie for modern look)
+            const ctxStatus = document.getElementById('statusChart').getContext('2d');
+            new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Resueltos', 'En Proceso', 'Pendientes', 'Cancelados'],
+                    datasets: [{
+                        data: [65, 20, 10, 5],
+                        backgroundColor: [
+                            '#10B981', // Emerald for resolved
+                            primaryColor,
+                            '#F59E0B', // Amber for pending
+                            '#EF4444'  // Red for cancelled
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: { size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 3: Daily Volume (Area Chart)
+            const ctxVolume = document.getElementById('volumeChart').getContext('2d');
+            
+            // Create gradient
+            let gradient = ctxVolume.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)'); // Primary with opacity
+            gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+
+            new Chart(ctxVolume, {
+                type: 'line',
+                data: {
+                    labels: ['1', '5', '10', '15', '20', '25', '30'],
+                    datasets: [{
+                        label: 'Solicitudes',
+                        data: [35, 42, 38, 55, 48, 62, 50],
+                        borderColor: primaryColor,
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: primaryColor,
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#191b23',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { size: 12 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor, drawBorder: false, borderDash: [5, 5] },
+                            ticks: { font: { size: 12 }, padding: 10 }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                }
+            });
+
+            // Chart 2: Priority (Bar Chart)
+            const ctxPriority = document.getElementById('priorityChart').getContext('2d');
+            new Chart(ctxPriority, {
+                type: 'bar',
+                data: {
+                    labels: ['Alta', 'Media', 'Baja'],
+                    datasets: [{
+                        label: 'Tickets',
+                        data: [150, 680, 418],
+                        backgroundColor: [
+                            '#EF4444', // Red for High
+                            '#F59E0B', // Amber for Medium
+                            '#10B981'  // Emerald for Low
+                        ],
+                        borderRadius: 6,
+                        barThickness: 32
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { size: 12 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor, drawBorder: false, borderDash: [5, 5] },
+                            ticks: { font: { size: 12 } }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body></html>

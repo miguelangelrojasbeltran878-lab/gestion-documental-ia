@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Respuesta al Cliente & Seguimiento 24/7 | EduSupport AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-obsidian: #0b0f19;
+            --bg-slate: #111827;
+            --surface-glass: rgba(255, 255, 255, 0.035);
+            --border-glass: rgba(255, 255, 255, 0.09);
+            --accent-violet: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --ease-sleek: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-obsidian);
+            background-image:
+                radial-gradient(circle at 12% 15%, rgba(139, 92, 246, 0.14), transparent 35%),
+                radial-gradient(circle at 88% 12%, rgba(6, 182, 212, 0.12), transparent 35%),
+                radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.08), transparent 40%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .topbar-glass {
+            background: rgba(11, 15, 25, 0.8);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid var(--border-glass);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .bento-card {
+            background: var(--surface-glass);
+            backdrop-filter: blur(18px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 1.65rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+            transition: transform 0.35s var(--ease-sleek), border-color 0.35s var(--ease-sleek);
+        }
+        .bento-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .pill-badge {
+            border-radius: 9999px;
+            padding: 0.38rem 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-pill {
+            border-radius: 9999px;
+            padding: 0.65rem 1.35rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: transform 0.25s var(--ease-sleek), box-shadow 0.25s var(--ease-sleek);
+        }
+        .btn-pill:hover {
+            transform: translateY(-2px);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, var(--accent-violet), var(--accent-cyan));
+            border: none;
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        }
+        .ticket-chip {
+            border-radius: 9999px;
+            padding: 0.35rem 0.85rem;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.25s var(--ease-sleek);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .ticket-chip:hover, .ticket-chip.active {
+            background: rgba(139, 92, 246, 0.18);
+            border-color: rgba(139, 92, 246, 0.5);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        /* Stepper */
+        .stepper-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+        @media (max-width: 768px) {
+            .stepper-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .step-box {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid var(--border-glass);
+            border-radius: 18px;
+            padding: 0.9rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .step-box.done {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.07);
+        }
+        .step-box.current {
+            border-color: rgba(6, 182, 212, 0.5);
+            background: rgba(6, 182, 212, 0.1);
+        }
+        .step-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        /* Executive Response Card */
+        .executive-response-card {
+            background: linear-gradient(145deg, rgba(139, 92, 246, 0.11), rgba(6, 182, 212, 0.07));
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            border-radius: 22px;
+            padding: 1.5rem;
+        }
+        /* Conversation Thread */
+        .chat-bubble {
+            border-radius: 20px;
+            padding: 1.1rem 1.25rem;
+            margin-bottom: 0.9rem;
+            border: 1px solid var(--border-glass);
+            position: relative;
+        }
+        .chat-cliente {
+            background: rgba(15, 23, 42, 0.75);
+            border-left: 4px solid var(--accent-cyan);
+        }
+        .chat-ia {
+            background: rgba(139, 92, 246, 0.09);
+            border-left: 4px solid var(--accent-violet);
+        }
+        .chat-agente {
+            background: rgba(16, 185, 129, 0.09);
+            border-left: 4px solid var(--accent-emerald);
+        }
+        /* Star Rating */
+        .star-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 0.45rem 0.75rem;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s var(--ease-sleek);
+        }
+        .star-btn.selected, .star-btn:hover {
+            background: rgba(245, 158, 11, 0.18);
+            border-color: rgba(245, 158, 11, 0.5);
+            color: #fbbf24;
+            transform: scale(1.05);
+        }
+        .sleek-input {
+            background: rgba(15, 23, 42, 0.75) !important;
+            border: 1px solid var(--border-glass) !important;
+            border-radius: 16px !important;
+            color: #fff !important;
+            padding: 0.75rem 1rem !important;
+        }
+        .sleek-input:focus {
+            border-color: var(--accent-violet) !important;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Topbar -->
+    <header class="topbar-glass py-3">
+        <div class="container-xxl d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <a href="/" class="d-flex align-items-center gap-3 text-decoration-none text-white">
+                <div class="rounded-4 d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:linear-gradient(135deg,#8b5cf6,#06b6d4);">
+                    <i class="bi bi-chat-heart-fill fs-5"></i>
+                </div>
+                <div>
+                    <div class="fw-bold">EduSupport AI 24/7</div>
+                    <div class="text-secondary" style="font-size:0.74rem;">Centro de Respuesta Ejecutiva al Cliente & Seguimiento en Vivo</div>
+                </div>
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <a href="/crear-solicitud" class="btn btn-gradient btn-pill text-decoration-none">
+                    <i class="bi bi-plus-circle me-1"></i> Radicar Nuevo Ticket (Lote 30 Archivos)
+                </a>
+                <a href="/agente/tickets" class="btn btn-outline-light btn-pill" style="border-color:var(--border-glass);">
+                    <i class="bi bi-headset me-1"></i> Consola Agente
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-xxl py-4">
+        {% if mensaje_flash %}
+        <div class="alert border-0 rounded-4 mb-4 d-flex align-items-center gap-3" style="background:rgba(16,185,129,0.14);border:1px solid rgba(16,185,129,0.4)!important;color:#a7f3d0;">
+            <i class="bi bi-check-circle-fill fs-4 text-success"></i>
+            <div class="fw-semibold small">{{ mensaje_flash }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Buscador + Selector Rápido de Tickets Recientes -->
+        <div class="bento-card mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="h4 fw-bold mb-1">Consulta tu Respuesta y Conversación 24/7</h1>
+                    <p class="text-secondary small mb-0">Visualiza la solución ejecutiva de IA, el análisis de tus archivos adjuntos y conversa en tiempo real con soporte.</p>
+                </div>
+                <div class="col-lg-6">
+                    <form action="/mis-tickets" method="GET" class="d-flex gap-2">
+                        <input type="text" name="codigo" value="{{ codigo }}" required placeholder="Ej: TCK-2026-1001" class="form-control sleek-input">
+                        <button type="submit" class="btn btn-gradient btn-pill px-4 flex-shrink-0">
+                            <i class="bi bi-search me-1"></i> Consultar
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% if tickets_recientes %}
+            <div class="mt-3 pt-3 border-top" style="border-color:var(--border-glass)!important;">
+                <span class="text-secondary small me-2"><i class="bi bi-clock-history me-1"></i>Acceso rápido a tus tickets recientes:</span>
+                <div class="d-inline-flex flex-wrap gap-2 mt-1">
+                    {% for t_rec in tickets_recientes %}
+                    <a href="/mis-tickets?codigo={{ t_rec.codigo_seguimiento }}" class="ticket-chip {% if ticket and ticket.codigo_seguimiento == t_rec.codigo_seguimiento %}active{% endif %}">
+                        <i class="bi bi-ticket-detailed"></i> {{ t_rec.codigo_seguimiento }}
+                        <span class="badge rounded-pill bg-dark text-secondary">{{ t_rec.prioridad }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if error %}
+            <div class="mt-3 p-3 rounded-4 d-flex align-items-center gap-2" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.3);color:#fda4af;">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span class="small fw-semibold">{{ error }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if ticket %}
+        <!-- Stepper de Progreso en Vivo del Cliente -->
+        <div class="stepper-grid mb-4">
+            <div class="step-box done">
+                <div class="step-icon bg-success bg-opacity-25 text-success"><i class="bi bi-check2-circle"></i></div>
+                <div>
+                    <div class="text-secondary" style="font-size:0.7rem;">PASO 1</div>
+                    <div class="fw-bold small">Solicitud Radicada</div>
+                </div>
+            </div>
+            <div class="step-box done">
+                <div class="step-icon bg-info bg-opacity-25 text-info"><i class="bi bi-cpu-fill"></i></div>
+                <div>
+                    <div class="text-secondary" style="font-size:0.7rem;">PASO 2</div>
+                    <div class="fw-bold small">Diagnóstico IA + Make</div>
+                </div>
+            </div>
+            <div class="step-box {% if ticket.respuesta_oficial or ticket.sugerencia_ia %}done{% else %}current{% endif %}">
+                <div class="step-icon bg-primary bg-opacity-25 text-primary"><i class="bi bi-chat-square-quote-fill"></i></div>
+                <div>
+                    <div class="text-secondary" style="font-size:0.7rem;">PASO 3</div>
+                    <div class="fw-bold small">Respuesta Entregada</div>
+                </div>
+            </div>
+            <div class="step-box {% if ticket.estado in ['Resuelto', 'Cerrado'] or ticket.calificacion %}done{% else %}current{% endif %}">
+                <div class="step-icon bg-warning bg-opacity-25 text-warning"><i class="bi bi-stars"></i></div>
+                <div>
+                    <div class="text-secondary" style="font-size:0.7rem;">PASO 4</div>
+                    <div class="fw-bold small">{{ 'Caso Resuelto' if ticket.estado in ['Resuelto', 'Cerrado'] else 'Seguimiento Activo' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Columna Principal: Respuesta Ejecutiva al Cliente + Hilo de Conversación -->
+            <div class="col-lg-8">
+                <!-- Tarjeta Principal de Respuesta al Cliente -->
+                <div class="bento-card mb-4">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-3 mb-3 border-bottom" style="border-color:var(--border-glass)!important;">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="pill-badge" style="background:rgba(139,92,246,0.18);color:#c4b5fd;border:1px solid rgba(139,92,246,0.4);font-family:'JetBrains Mono',monospace;">
+                                <i class="bi bi-hash"></i> {{ ticket.codigo_seguimiento }}
+                            </span>
+                            <span class="pill-badge" style="background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.35);">
+                                <i class="bi bi-activity"></i> Estado: {{ ticket.estado }}
+                            </span>
+                            <span class="pill-badge" style="background:rgba(6,182,212,0.15);color:#67e8f9;border:1px solid rgba(6,182,212,0.35);">
+                                <i class="bi bi-lightning-charge-fill"></i> Prioridad: {{ ticket.prioridad }}
+                            </span>
+                        </div>
+                        <button type="button" onclick="copyResponseText()" class="btn btn-sm btn-outline-light rounded-pill px-3" style="border-color:var(--border-glass);font-size:0.75rem;">
+                            <i class="bi bi-clipboard-check me-1"></i> Copiar Solución
+                        </button>
+                    </div>
+
+                    <h2 class="h5 fw-bold text-white mb-1">{{ ticket.titulo }}</h2>
+                    <div class="text-secondary small mb-4">
+                        Cliente: <strong class="text-light">{{ ticket.cliente.nombre_completo if ticket.cliente else 'Cliente' }}</strong>
+                        {% if ticket.cliente and ticket.cliente.empresa_organizacion %} ({{ ticket.cliente.empresa_organizacion }}){% endif %}
+                        • Categoría: <strong class="text-info">{{ ticket.categoria_preliminar }}</strong>
+                        • Radicado: {{ ticket.fecha_creacion.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+
+                    <!-- RESPUESTA EJECUTIVA AL CLIENTE (SIEMPRE DISPONIBLE 24/7) -->
+                    <div class="executive-response-card mb-4">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:34px;height:34px;background:rgba(139,92,246,0.25);color:#c4b5fd;">
+                                    <i class="bi bi-stars"></i>
+                                </span>
+                                <div>
+                                    <div class="fw-bold text-white small">Respuesta y Solución Oficial 24/7 para el Cliente</div>
+                                    <div class="text-secondary" style="font-size:0.72rem;">
+                                        Responsable: {{ ticket.agente_asignado.nombre_completo if ticket.agente_asignado else 'Especialista IA + Equipo de Soporte' }}
+                                        {% if ticket.sugerencia_ia %} • Precisión IA: {{ (ticket.sugerencia_ia.score_confianza * 100) | int }}%{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill text-bg-success bg-opacity-25 text-success border border-success border-opacity-25">
+                                <i class="bi bi-shield-check me-1"></i> Solución Verificada
+                            </span>
+                        </div>
+
+                        <div id="customer-solution-body" class="p-3 rounded-4 text-light small" style="background:rgba(11,15,25,0.75);border:1px solid var(--border-glass);white-space:pre-line;line-height:1.7;">{{ ticket.respuesta_oficial or (ticket.sugerencia_ia.respuesta_sugerida if ticket.sugerencia_ia else 'Tu solicitud está siendo procesada prioritariamente.') }}</div>
+                    </div>
+
+                    <!-- HILO DE CONVERSACIÓN INTERACTIVO (CLIENTE <-> IA <-> AGENTE) -->
+                    <div class="mt-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h3 class="h6 fw-bold mb-0"><i class="bi bi-chat-dots-fill text-info me-2"></i>Hilo de Conversación y Seguimiento en Vivo</h3>
+                            <span class="text-secondary small">{{ ticket.mensajes | length }} mensaje(s) en el expediente</span>
+                        </div>
+
+                        <div class="mb-3">
+                            {% if ticket.mensajes %}
+                                {% for msg in ticket.mensajes %}
+                                <div class="chat-bubble {% if msg.remitente_tipo == 'CLIENTE' %}chat-cliente{% elif msg.remitente_tipo == 'AGENTE' %}chat-agente{% else %}chat-ia{% endif %}">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="fw-bold small">
+                                            {% if msg.remitente_tipo == 'CLIENTE' %}
+                                                <i class="bi bi-person-circle text-info me-1"></i> {{ msg.remitente_nombre }} (Cliente)
+                                            {% elif msg.remitente_tipo == 'AGENTE' %}
+                                                <i class="bi bi-headset text-success me-1"></i> {{ msg.remitente_nombre }} (Especialista de Soporte)
+                                            {% else %}
+                                                <i class="bi bi-robot text-primary me-1"></i> {{ msg.remitente_nombre }}
+                                            {% endif %}
+                                        </span>
+                                        <span class="text-secondary" style="font-size:0.72rem;">{{ msg.fecha_envio.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                                    </div>
+                                    <div class="small text-light" style="white-space:pre-line;line-height:1.6;">{{ msg.contenido }}</div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="chat-bubble chat-cliente">
+                                    <div class="fw-bold small mb-1"><i class="bi bi-person-circle text-info me-1"></i> Solicitud Inicial del Cliente</div>
+                                    <div class="small text-light" style="white-space:pre-line;">{{ ticket.descripcion }}</div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Formulario para que el Cliente envíe una réplica o duda adicional -->
+                        <form action="/mis-tickets/{{ ticket.codigo_seguimiento }}/replicar" method="POST" class="p-3 rounded-4" style="background:rgba(15,23,42,0.65);border:1px solid var(--border-glass);">
+                            <label class="form-label small fw-bold text-info mb-2">
+                                <i class="bi bi-reply-fill me-1"></i> ¿Tienes alguna duda adicional o deseas responder sobre esta solución?
+                            </label>
+                            <textarea name="comentario_cliente" rows="3" required placeholder="Escribe aquí tu respuesta, aclaración o pregunta adicional... Nuestro Asistente IA 24/7 y el agente asignado te responderán al instante." class="form-control sleek-input small mb-2"></textarea>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary" style="font-size:0.73rem;"><i class="bi bi-lightning-charge text-warning me-1"></i>Respuesta asistida por IA en tiempo real</span>
+                                <button type="submit" class="btn btn-gradient btn-pill btn-sm px-4">
+                                    <i class="bi bi-send-fill me-1"></i> Enviar Mensaje al Ticket
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Lateral: Lotes de Archivos Make + Encuesta de Satisfacción CSAT -->
+            <div class="col-lg-4">
+                <!-- Calificación de Satisfacción del Cliente (CSAT) -->
+                <div class="bento-card mb-4">
+                    <h3 class="h6 fw-bold mb-2"><i class="bi bi-star-fill text-warning me-2"></i>Califica la Respuesta Recibida</h3>
+                    <p class="text-secondary small mb-3">Tu opinión nos ayuda a entrenar nuestro motor de IA y mejorar el nivel de atención.</p>
+
+                    {% if ticket.calificacion %}
+                    <div class="p-3 rounded-4 mb-3" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);">
+                        <div class="fw-bold text-warning mb-1">
+                            {% for _ in range(ticket.calificacion.estrellas) %}★{% endfor %}
+                            <span class="text-light small ms-1">({{ ticket.calificacion.estrellas }}/5 Estrellas)</span>
+                        </div>
+                        <div class="small text-secondary">{{ ticket.calificacion.comentario or '¡Gracias por evaluar nuestra atención!' }}</div>
+                    </div>
+                    {% endif %}
+
+                    <form action="/mis-tickets/{{ ticket.codigo_seguimiento }}/calificar" method="POST">
+                        <input type="hidden" name="estrellas" id="input-estrellas" value="{{ ticket.calificacion.estrellas if ticket.calificacion else 5 }}">
+                        <div class="d-flex justify-content-between gap-1 mb-3">
+                            {% for i in [1, 2, 3, 4, 5] %}
+                            <button type="button" onclick="selectStar({{ i }})" class="star-btn flex-fill text-center {% if (ticket.calificacion and ticket.calificacion.estrellas >= i) or (not ticket.calificacion and i <= 5) %}selected{% endif %}" data-star="{{ i }}">
+                                <i class="bi bi-star-fill"></i> {{ i }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <input type="text" name="comentario_calificacion" value="{{ ticket.calificacion.comentario if ticket.calificacion else '' }}" placeholder="Comentario opcional sobre la solución..." class="form-control sleek-input small mb-3">
+                        <button type="submit" class="btn btn-outline-warning btn-pill w-100 btn-sm">
+                            <i class="bi bi-award me-1"></i> Guardar Calificación de Servicio
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Chatbot IA de Archivos del Ticket -->
+                <div class="bento-card mb-4" style="border-color:rgba(139,92,246,0.4);">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:34px;height:34px;background:linear-gradient(135deg,#8b5cf6,#06b6d4);color:#fff;">
+                                <i class="bi bi-robot"></i>
+                            </span>
+                            <div>
+                                <h3 class="h6 fw-bold mb-0">Chatbot IA: Pregunta por tus Archivos</h3>
+                                <div class="text-secondary" style="font-size:0.72rem;">Respuestas al instante sobre los documentos de este ticket</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        <button type="button" onclick="askTicketFileBot('Resúmeme todos los archivos de forma clara y detallada')" class="btn btn-sm rounded-pill text-white border border-primary border-opacity-50 py-1 px-2 fw-semibold" style="background:rgba(139,92,246,0.28);font-size:0.7rem;">
+                            📋 Resumir todos los archivos
+                        </button>
+                        <button type="button" onclick="askTicketFileBot('Resúmeme todos los archivos de forma clara y detallada')" class="btn btn-sm rounded-pill text-white border border-primary border-opacity-50 py-1 px-2 fw-semibold" style="background:rgba(139,92,246,0.28);font-size:0.7rem;">
+                            📋 Resumir todos los archivos
+                        </button>
+                        <button type="button" onclick="askTicketFileBot('¿Cuántos archivos hay por formato?')" class="btn btn-sm rounded-pill text-info border border-info border-opacity-25 py-1 px-2" style="background:rgba(6,182,212,0.08);font-size:0.7rem;">
+                            📊 ¿Cuántos hay por formato?
+                        </button>
+                        <button type="button" onclick="askTicketFileBot('¿Qué dicen los archivos PDF y Word?')" class="btn btn-sm rounded-pill text-light border border-secondary border-opacity-25 py-1 px-2" style="background:rgba(255,255,255,0.04);font-size:0.7rem;">
+                            📑 Resumen PDF/Word
+                        </button>
+                        <button type="button" onclick="askTicketFileBot('¿Qué datos tienen los Excel (.xlsx)?')" class="btn btn-sm rounded-pill text-light border border-secondary border-opacity-25 py-1 px-2" style="background:rgba(255,255,255,0.04);font-size:0.7rem;">
+                            📈 Datos Excel
+                        </button>
+                        <button type="button" onclick="askTicketFileBot('¿Hay archivos con prioridad Alta?')" class="btn btn-sm rounded-pill text-warning border border-warning border-opacity-25 py-1 px-2" style="background:rgba(245,158,11,0.08);font-size:0.7rem;">
+                            ⚠️ ¿Prioridad Alta?
+                        </button>
+                    </div>
+
+                    <div id="ticketFileBotBox" class="p-3 rounded-4 mb-2" style="background:rgba(7,10,18,0.85);border:1px solid var(--border-glass);max-height:250px;overflow-y:auto;font-size:0.78rem;">
+                        <div class="p-2 rounded-3 mb-2" style="background:rgba(139,92,246,0.12);border-left:3px solid #8b5cf6;color:#e2e8f0;">
+                            <div class="fw-bold text-info mb-1" style="font-size:0.72rem;"><i class="bi bi-stars me-1"></i>Chatbot Documental IA</div>
+                            <div>¡Hola! Pregúntame sobre cualquiera de los archivos adjuntos a tu ticket <strong>{{ ticket.codigo_seguimiento }}</strong> (por nombre, por tipo .pdf/.xlsx/.docx/.jpg o por prioridad).</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <input type="text" id="ticketFileBotInput" class="form-control sleek-input py-2 px-3 small" placeholder="Pregunta sobre tus archivos..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendTicketFileBot();}">
+                        <button type="button" onclick="sendTicketFileBot()" class="btn btn-gradient btn-pill px-3 py-2 flex-shrink-0">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lotes de Archivos Procesados en Make + IA -->
+                <div class="bento-card">
+                    <h3 class="h6 fw-bold mb-2"><i class="bi bi-folder2-open text-info me-2"></i>Tus Archivos Analizados ({{ ticket.lotes | length }} Lote(s))</h3>
+                    {% if ticket.lotes %}
+                        {% for lote in ticket.lotes %}
+                        <div class="p-3 rounded-4 mb-3" style="background:rgba(15,23,42,0.75);border:1px solid var(--border-glass);">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge rounded-pill text-bg-primary bg-opacity-25 text-info font-monospace">{{ lote.batch_code }}</span>
+                                <span class="badge rounded-pill text-bg-success bg-opacity-25 text-success">{{ lote.archivos_procesados }}/{{ lote.total_archivos }} OK</span>
+                            </div>
+                            <div class="overflow-auto" style="max-height:240px;">
+                                {% for arch in lote.archivos %}
+                                <div class="py-2 border-bottom" style="border-color:rgba(255,255,255,0.06)!important;font-size:0.75rem;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong class="text-white text-truncate" style="max-width:180px;">.{{ arch.extension | upper }} — {{ arch.nombre_original }}</strong>
+                                        <span class="badge bg-dark text-secondary">{{ arch.prioridad_detectada }}</span>
+                                    </div>
+                                    <div class="text-secondary mt-1">{{ arch.recomendacion_ia }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-secondary small mb-0">Esta solicitud no incluye lotes de archivos adjuntos.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script>
+                async function sendTicketFileBot() {
+            const inp = document.getElementById('ticketFileBotInput');
+            const box = document.getElementById('ticketFileBotBox');
+            if (!inp || !box) return;
+            const q = inp.value.trim();
+            if (!q) return;
+            inp.value = '';
+
+            const uDiv = document.createElement('div');
+            uDiv.className = 'p-2 rounded-3 mb-2 text-end';
+            uDiv.style.cssText = 'background:rgba(6,182,212,0.14);border-right:3px solid #06b6d4;color:#f8fafc;';
+            uDiv.innerHTML = `<div class="fw-bold text-info mb-1" style="font-size:0.7rem;">Tú</div><div>${q}</div>`;
+            box.appendChild(uDiv);
+            box.scrollTop = box.scrollHeight;
+
+            try {
+                const res = await fetch('/api/v1/chatbot-archivos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pregunta: q,
+                        codigo_ticket: '{{ ticket.codigo_seguimiento if ticket else "" }}'
+                    })
+                });
+                const data = await res.json();
+                const bDiv = document.createElement('div');
+                bDiv.className = 'p-2 rounded-3 mb-2';
+                bDiv.style.cssText = 'background:rgba(139,92,246,0.12);border-left:3px solid #8b5cf6;color:#e2e8f0;white-space:pre-line;';
+                const fmt = (data.respuesta || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/^### (.*)$/gm, '<div class="fw-bold text-info mt-2 mb-1">$1</div>').replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>').replace(/`(.*?)`/g, '<code class="text-warning bg-dark px-1 rounded">$1</code>').replace(/\n/g, '<br>');
+                bDiv.innerHTML = `<div class="fw-bold text-info mb-1" style="font-size:0.72rem;"><i class="bi bi-robot me-1"></i>Chatbot Documental IA</div><div style="line-height:1.55;">${fmt}</div>`;
+                box.appendChild(bDiv);
+                box.scrollTop = box.scrollHeight;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        function askTicketFileBot(q) {
+            const inp = document.getElementById('ticketFileBotInput');
+            if (inp) {
+                inp.value = q;
+                sendTicketFileBot();
+            }
+        }
+
+        function selectStar(val) {
+            document.getElementById('input-estrellas').value = val;
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                const s = parseInt(btn.getAttribute('data-star'));
+                btn.classList.toggle('selected', s <= val);
+            });
+        }
+        function copyResponseText() {
+            const el = document.getElementById('customer-solution-body');
+            if (!el) return;
+            navigator.clipboard.writeText(el.innerText);
+            alert('¡Respuesta copiada al portapapeles!');
+        }
+        gsap.from('.bento-card, .step-box', {
+            y: 16,
+            opacity: 0,
+            duration: 0.55,
+            stagger: 0.06,
+            ease: 'power3.out'
+        });
+    </script>
+</body>
+</html>

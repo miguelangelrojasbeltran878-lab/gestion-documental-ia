@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduSupport AI — Portal Inteligente de Tickets & Procesamiento por Lotes Make</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+
+    <!-- Bootstrap Icons 1.11.3 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <style>
+        :root {
+            --bg-obsidian: #0b0f19;
+            --bg-slate-deep: #111827;
+            --glass-surface: rgba(255, 255, 255, 0.03);
+            --glass-surface-hover: rgba(255, 255, 255, 0.055);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-border-focus: rgba(139, 92, 246, 0.55);
+            --accent-violet: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --accent-amber: #f59e0b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --radius-bento: 24px;
+            --radius-inner: 18px;
+            --radius-pill: 9999px;
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-obsidian);
+            background-image:
+                radial-gradient(circle at 12% 18%, rgba(139, 92, 246, 0.14) 0%, transparent 38%),
+                radial-gradient(circle at 88% 12%, rgba(6, 182, 212, 0.12) 0%, transparent 35%),
+                radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 45%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            letter-spacing: -0.01em;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* 1. TOPBAR & HEADER STATUS */
+        .topbar-glass {
+            background: rgba(11, 15, 25, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+
+        .brand-orb {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(6, 182, 212, 0.25));
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #c4b5fd;
+            box-shadow: 0 0 24px rgba(139, 92, 246, 0.25);
+        }
+
+        .badge-pill-status {
+            border-radius: var(--radius-pill);
+            padding: 0.42rem 0.95rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.28);
+            color: #6ee7b7;
+            font-size: 0.78rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-emerald);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulseGlow 2s infinite var(--ease-out-expo);
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* 2. BENTO CARDS & INPUT CONTROLS */
+        .bento-card {
+            background: var(--glass-surface);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-bento);
+            padding: 1.75rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+            transition: transform 0.35s var(--ease-out-expo), border-color 0.35s var(--ease-out-expo);
+        }
+
+        .bento-card:hover {
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        .form-label-sleek {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .input-sleek {
+            background: rgba(11, 15, 25, 0.65) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: var(--radius-inner) !important;
+            color: var(--text-primary) !important;
+            padding: 0.8rem 1.1rem !important;
+            font-size: 0.92rem !important;
+            transition: border-color 0.25s var(--ease-out-expo), box-shadow 0.25s var(--ease-out-expo), transform 0.25s var(--ease-out-expo);
+        }
+
+        .input-sleek::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-sleek:focus {
+            border-color: var(--glass-border-focus) !important;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        /* 3. ULTRA-SLEEK DROPZONE & FILE CHIPS */
+        .dropzone-sleek {
+            position: relative;
+            border: 2px dashed rgba(139, 92, 246, 0.35);
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.04) 0%, rgba(6, 182, 212, 0.02) 100%);
+            padding: 2.2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s var(--ease-out-expo), border-color 0.3s var(--ease-out-expo), background-color 0.3s var(--ease-out-expo);
+        }
+
+        .dropzone-sleek:hover,
+        .dropzone-sleek.dragover {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .dropzone-sleek input[type="file"] {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        .dropzone-icon-ring {
+            width: 58px;
+            height: 58px;
+            border-radius: 20px;
+            background: rgba(139, 92, 246, 0.14);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #c4b5fd;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.55rem;
+            margin-bottom: 0.85rem;
+            transition: transform 0.35s var(--ease-out-expo);
+        }
+
+        .dropzone-sleek:hover .dropzone-icon-ring {
+            transform: scale(1.08) translateY(-2px);
+        }
+
+        .badge-capacity {
+            border-radius: var(--radius-pill);
+            padding: 0.38rem 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            color: #67e8f9;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .file-chips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+            gap: 0.75rem;
+            max-height: 310px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+
+        .file-chip {
+            background: rgba(17, 24, 39, 0.82);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 0.7rem 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.65rem;
+            will-change: transform, opacity;
+            transition: border-color 0.25s var(--ease-out-expo), transform 0.25s var(--ease-out-expo);
+        }
+
+        .file-chip:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .chip-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .chip-pdf { background: rgba(244, 63, 94, 0.14); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+        .chip-xlsx { background: rgba(16, 185, 129, 0.14); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .chip-docx { background: rgba(59, 130, 246, 0.14); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .chip-jpg { background: rgba(245, 158, 11, 0.14); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .btn-chip-remove {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-pill);
+            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s var(--ease-out-expo), color 0.2s var(--ease-out-expo), transform 0.2s var(--ease-out-expo);
+            flex-shrink: 0;
+        }
+
+        .btn-chip-remove:hover {
+            background: rgba(244, 63, 94, 0.22);
+            color: #fda4af;
+            transform: scale(1.1);
+        }
+
+        /* 4. AI PROCESSING CONSOLE & LIQUID PROGRESS BAR */
+        .pipeline-stage {
+            background: rgba(11, 15, 25, 0.55);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 0.95rem 1.1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.85rem;
+            transition: border-color 0.35s var(--ease-out-expo), background-color 0.35s var(--ease-out-expo), transform 0.35s var(--ease-out-expo);
+        }
+
+        .pipeline-stage.active {
+            border-color: rgba(6, 182, 212, 0.55);
+            background: rgba(6, 182, 212, 0.08);
+            transform: translateX(4px);
+        }
+
+        .pipeline-stage.done {
+            border-color: rgba(16, 185, 129, 0.45);
+            background: rgba(16, 185, 129, 0.06);
+        }
+
+        .stage-indicator {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            font-size: 0.95rem;
+        }
+
+        .pipeline-stage.active .stage-indicator {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: var(--accent-cyan);
+            color: #67e8f9;
+        }
+
+        .pipeline-stage.done .stage-indicator {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--accent-emerald);
+            color: #6ee7b7;
+        }
+
+        .liquid-progress-track {
+            height: 12px;
+            border-radius: var(--radius-pill);
+            background: rgba(11, 15, 25, 0.8);
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .liquid-progress-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: var(--radius-pill);
+            background: linear-gradient(90deg, var(--accent-violet), var(--accent-cyan), var(--accent-emerald));
+            background-size: 200% 100%;
+            animation: liquidFlow 2.6s linear infinite;
+            transition: width 0.45s var(--ease-out-expo);
+        }
+
+        @keyframes liquidFlow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        /* 5. PILL BUTTONS & MICRO-INTERACTIONS */
+        .btn-pill-primary {
+            border-radius: var(--radius-pill);
+            padding: 0.85rem 1.85rem;
+            font-weight: 700;
+            font-size: 0.92rem;
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            background: linear-gradient(135deg, #7c3aed 0%, #0891b2 100%);
+            color: #ffffff;
+            box-shadow: 0 10px 28px -6px rgba(124, 58, 237, 0.55);
+            transition: transform 0.28s var(--ease-out-expo), box-shadow 0.28s var(--ease-out-expo), opacity 0.28s var(--ease-out-expo);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+
+        .btn-pill-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 34px -6px rgba(6, 182, 212, 0.65);
+            color: #ffffff;
+        }
+
+        .btn-pill-primary:active:not(:disabled) {
+            transform: translateY(0px) scale(0.98);
+        }
+
+        .btn-pill-secondary {
+            border-radius: var(--radius-pill);
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: transform 0.25s var(--ease-out-expo), color 0.25s var(--ease-out-expo), border-color 0.25s var(--ease-out-expo);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .btn-pill-secondary:hover {
+            transform: translateY(-2px);
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.22);
+        }
+
+        .console-output-box {
+            background: rgba(7, 10, 18, 0.85);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 1rem 1.15rem;
+            max-height: 270px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. HEADER & TOPBAR DE ESTATUS -->
+    <header class="topbar-glass py-3">
+        <div class="container-xxl d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <a href="/" class="d-flex align-items-center gap-3 text-decoration-none">
+                <div class="brand-orb">
+                    <i class="bi bi-cpu-fill fs-5"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h1 class="h6 fw-bold mb-0 text-white">EduSupport AI 24/7</h1>
+                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-info border border-info border-opacity-25 font-mono" style="font-size: 0.68rem;">v2.4 MAKE-BATCH</span>
+                    </div>
+                    <p class="mb-0 text-secondary" style="font-size: 0.75rem;">Orquestación Multimodal por Lotes & Atención al Cliente</p>
+                </div>
+            </a>
+
+            <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3">
+                <span class="text-secondary font-mono d-none d-md-inline" style="font-size: 0.76rem;">
+                    <i class="bi bi-shield-lock me-1 text-info"></i>SESSION: <strong class="text-light" id="sessionIdDisplay">SES-2026-994A</strong>
+                </span>
+                <div class="badge-pill-status" title="Conectado al Webhook e IA Multimodal">
+                    <span class="pulse-dot"></span>
+                    <span>Make & AI Engine Online</span>
+                </div>
+                <a href="/mis-tickets" class="btn-pill-secondary">
+                    <i class="bi bi-search"></i> Consultar Ticket
+                </a>
+                <a href="/agente/tickets" class="btn-pill-secondary">
+                    <i class="bi bi-kanban"></i> Consola Agentes
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN BENTO WORKSPACE -->
+    <main class="container-xxl py-4 py-lg-5">
+        <form id="smartBatchTicketForm" action="/crear-solicitud" method="POST" enctype="multipart/form-data" novalidate>
+            <div class="row g-4 align-items-start">
+
+                <!-- COLUMNA IZQUIERDA (BENTO PRINCIPAL: FORMULARIO + DROPZONE) -->
+                <div class="col-12 col-lg-7 d-flex flex-column gap-4">
+
+                    <!-- TARJETA BENTO 1: METADATOS DEL SOLICITANTE Y PREGUNTAS DIRIGIDAS -->
+                    <section class="bento-card bento-animate">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                            <div>
+                                <span class="badge rounded-pill bg-purple bg-opacity-10 text-info border border-info border-opacity-25 mb-2" style="padding: 0.35rem 0.75rem;">
+                                    <i class="bi bi-stars me-1"></i> Paso 1 • Contexto e Instrucciones IA
+                                </span>
+                                <h2 class="h5 fw-bold mb-0 text-white">Apertura de Ticket Inteligente 24/7</h2>
+                            </div>
+                            <span class="font-mono text-secondary" style="font-size: 0.75rem;">SLA Priorizado por IA</span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label for="nombreCliente" class="form-label-sleek">
+                                    <i class="bi bi-person-badge text-info"></i> Nombre Completo *
+                                </label>
+                                <input type="text" id="nombreCliente" name="nombre_cliente" class="form-control input-sleek" placeholder="Ej. Dra. Camila Restrepo" required />
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label for="correoCliente" class="form-label-sleek">
+                                    <i class="bi bi-envelope-at text-info"></i> Correo Corporativo *
+                                </label>
+                                <input type="email" id="correoCliente" name="correo_cliente" class="form-control input-sleek" placeholder="camila.restrepo@empresa.com" required />
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label for="telefonoCliente" class="form-label-sleek">
+                                    <i class="bi bi-telephone text-secondary"></i> Teléfono / Extensión
+                                </label>
+                                <input type="text" id="telefonoCliente" name="telefono" class="form-control input-sleek" placeholder="+57 310 555 8899" />
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label for="empresaCliente" class="form-label-sleek">
+                                    <i class="bi bi-building text-secondary"></i> Organización / Área
+                                </label>
+                                <input type="text" id="empresaCliente" name="empresa" class="form-control input-sleek" placeholder="Ej. Finanzas & Auditoría TI" />
+                            </div>
+
+                            <div class="col-12 col-md-8">
+                                <label for="tituloTicket" class="form-label-sleek">
+                                    <i class="bi bi-card-heading text-info"></i> Título del Asunto *
+                                </label>
+                                <input type="text" id="tituloTicket" name="titulo" class="form-control input-sleek" placeholder="Ej. Auditoría de lote de facturas, reportes Excel y capturas de error 500" required />
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label for="categoriaTicket" class="form-label-sleek">
+                                    <i class="bi bi-tags text-info"></i> Categoría del Ticket
+                                </label>
+                                <select id="categoriaTicket" name="categoria_preliminar" class="form-select input-sleek">
+                                    <option value="Soporte Técnico">Soporte Técnico</option>
+                                    <option value="Conectividad y Servidores">Conectividad y Servidores</option>
+                                    <option value="Acceso y Cuentas">Acceso y Cuentas</option>
+                                    <option value="Facturación y Pagos">Facturación y Pagos</option>
+                                    <option value="General">General / Auditoría Documental</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <label for="promptDescripcion" class="form-label-sleek mb-0">
+                                        <i class="bi bi-chat-square-quote-fill text-warning"></i> ¿Qué necesitas que la IA o el equipo analice en estos documentos? *
+                                    </label>
+                                    <span id="charCounter" class="font-mono text-secondary" style="font-size: 0.74rem;">0 / 2000</span>
+                                </div>
+                                <textarea
+                                    id="promptDescripcion"
+                                    name="descripcion"
+                                    rows="4"
+                                    maxlength="2000"
+                                    class="form-control input-sleek"
+                                    placeholder="Escribe tus preguntas dirigidas sobre el lote (ej: 'Extraer los códigos de error de las capturas .jpg, cruzar los totales del .xlsx contra las facturas .pdf y generar un resumen ejecutivo de fallas críticas')..."
+                                    required></textarea>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TARJETA BENTO 2: ZONA DE CARGA MASIVA (ULTRA-SLEEK DROPZONE) -->
+                    <section class="bento-card bento-animate">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                            <div>
+                                <h3 class="h6 fw-bold mb-1 text-white d-flex align-items-center gap-2">
+                                    <i class="bi bi-cloud-arrow-up-fill text-info"></i> Zona de Carga Masiva Multimodal (Make Batch Router)
+                                </h3>
+                                <p class="mb-0 text-secondary" style="font-size: 0.78rem;">
+                                    Despacha documentos mixtos en paralelo hacia el escenario `Iterator -> Router -> Vision/LLM`
+                                </p>
+                            </div>
+                            <span class="badge-capacity">
+                                <i class="bi bi-layers-half"></i> Capacidad para lotes de hasta 30 archivos (.pdf, .xlsx, .docx, .jpg)
+                            </span>
+                        </div>
+
+                        <!-- Dropzone Interactivo -->
+                        <div id="sleekDropzone" class="dropzone-sleek mb-3" role="button" tabindex="0" aria-label="Zona de carga de hasta 30 archivos">
+                            <input
+                                type="file"
+                                id="fileBatchInput"
+                                name="archivos"
+                                multiple
+                                accept=".pdf,.xlsx,.docx,.jpg,.jpeg"
+                                aria-describedby="dropzoneHelp" />
+                            <div class="dropzone-icon-ring">
+                                <i class="bi bi-file-earmark-plus"></i>
+                            </div>
+                            <h4 class="h6 fw-bold text-white mb-1">Arrastra y suelta tus archivos aquí o haz clic para explorar</h4>
+                            <p id="dropzoneHelp" class="text-secondary mb-3" style="font-size: 0.8rem;">
+                                Soporta selección múltiple e incremental • Máximo <strong>30 archivos</strong> por lote (15 MB c/u)
+                            </p>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                <span class="badge rounded-pill chip-pdf px-3 py-1 font-mono" style="font-size: 0.7rem;"><i class="bi bi-file-earmark-pdf me-1"></i>.PDF (OCR/Visión)</span>
+                                <span class="badge rounded-pill chip-xlsx px-3 py-1 font-mono" style="font-size: 0.7rem;"><i class="bi bi-file-earmark-spreadsheet me-1"></i>.XLSX (Tablas/CSV)</span>
+                                <span class="badge rounded-pill chip-docx px-3 py-1 font-mono" style="font-size: 0.7rem;"><i class="bi bi-file-earmark-word me-1"></i>.DOCX (Texto)</span>
+                                <span class="badge rounded-pill chip-jpg px-3 py-1 font-mono" style="font-size: 0.7rem;"><i class="bi bi-file-earmark-image me-1"></i>.JPG (Vision AI)</span>
+                            </div>
+                        </div>
+
+                        <!-- Barra de Contadores del Lote -->
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 px-1">
+                            <div class="d-flex flex-wrap align-items-center gap-2 font-mono" style="font-size: 0.76rem;">
+                                <span class="text-secondary">Archivos en cola: <strong id="countTotal" class="text-white">0 / 30</strong></span>
+                                <span class="text-secondary">•</span>
+                                <span class="text-secondary">Peso total: <strong id="sizeTotal" class="text-info">0.0 KB</strong></span>
+                            </div>
+                            <button type="button" id="btnClearBatch" class="btn-pill-secondary py-1 px-3 d-none" style="font-size: 0.74rem;">
+                                <i class="bi bi-trash3 text-danger"></i> Vaciar Lote
+                            </button>
+                        </div>
+
+                        <!-- Grid Dinámico de File Chips -->
+                        <div id="fileChipsContainer" class="file-chips-grid"></div>
+                    </section>
+                </div>
+
+                <!-- COLUMNA DERECHA (BENTO LATERAL: AI PROCESSING CONSOLE & ACCIONES) -->
+                <div class="col-12 col-lg-5 d-flex flex-column gap-4 position-sticky" style="top: 5.5rem;">
+
+                    <!-- TARJETA BENTO 3: AI PROCESSING CONSOLE -->
+                    <aside class="bento-card bento-animate">
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom border-secondary border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-terminal-plus fs-5 text-info"></i>
+                                <div>
+                                    <h3 class="h6 fw-bold mb-0 text-white">AI Processing Console</h3>
+                                    <p class="mb-0 text-secondary" style="font-size: 0.73rem;">Telemetría en vivo del Pipeline Make + LLM</p>
+                                </div>
+                            </div>
+                            <span id="pipelineBadgeState" class="badge rounded-pill bg-secondary bg-opacity-25 text-secondary font-mono" style="font-size: 0.7rem;">
+                                STANDBY
+                            </span>
+                        </div>
+
+                        <!-- Resumen de Rutas del Router Make -->
+                        <div class="row g-2 mb-3 text-center font-mono" style="font-size: 0.73rem;">
+                            <div class="col-3">
+                                <div class="p-2 rounded-4 chip-pdf">
+                                    <div class="fw-bold fs-6" id="statPdf">0</div>
+                                    <div>PDF</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 rounded-4 chip-xlsx">
+                                    <div class="fw-bold fs-6" id="statXlsx">0</div>
+                                    <div>XLSX</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 rounded-4 chip-docx">
+                                    <div class="fw-bold fs-6" id="statDocx">0</div>
+                                    <div>DOCX</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 rounded-4 chip-jpg">
+                                    <div class="fw-bold fs-6" id="statJpg">0</div>
+                                    <div>JPG</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Barra de Progreso Líquida -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between font-mono mb-1" style="font-size: 0.74rem;">
+                                <span id="progressLabel" class="text-secondary">Esperando despacho del lote...</span>
+                                <span id="progressPercent" class="text-info fw-bold">0%</span>
+                            </div>
+                            <div class="liquid-progress-track">
+                                <div id="liquidProgressBar" class="liquid-progress-bar"></div>
+                            </div>
+                        </div>
+
+                        <!-- Etapas del Pipeline Asíncrono Make -->
+                        <div class="d-flex flex-column gap-2 mb-4">
+                            <div id="stage1" class="pipeline-stage">
+                                <div class="stage-indicator" id="stage1Icon">
+                                    <i class="bi bi-cloud-upload"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-white" style="font-size: 0.84rem;">Etapa 1: Encolado y Carga de Lote</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">
+                                        Generación de URLs firmadas HMAC y envío de manifiesto al Custom Webhook de Make.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="stage2" class="pipeline-stage">
+                                <div class="stage-indicator" id="stage2Icon">
+                                    <i class="bi bi-diagram-3"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-white" style="font-size: 0.84rem;">Etapa 2: Extracción y Parseo Multi-Formato</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">
+                                        Desglose en `Iterator` y derivación por `Router` (OCR PDF/JPG, Tablas XLSX, Texto DOCX).
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="stage3" class="pipeline-stage">
+                                <div class="stage-indicator" id="stage3Icon">
+                                    <i class="bi bi-cpu"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-white" style="font-size: 0.84rem;">Etapa 3: Síntesis y Respuesta Generada por IA</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">
+                                        Consolidación en `Array Aggregator`, priorización automática y registro del ticket.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Consola de Salida en Vivo -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="form-label-sleek mb-0"><i class="bi bi-code-slash text-info"></i> Live Execution Log & Síntesis IA</span>
+                                <span class="font-mono text-secondary" style="font-size: 0.68rem;">UTF-8 / JSON</span>
+                            </div>
+                            <div id="consoleOutput" class="console-output-box font-mono text-secondary">
+                                <div>[SYSTEM] Portal de Tickets 24/7 + Conector Make inicializado.</div>
+                                <div>[READY] Adjunta hasta 30 archivos (.pdf, .xlsx, .docx, .jpg) y formula tu consulta.</div>
+                            </div>
+                        </div>
+
+                        <!-- Botón Principal de Envío -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" id="btnSubmitBatch" class="btn-pill-primary w-100">
+                                <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                <i id="btnIcon" class="bi bi-send-check-fill"></i>
+                                <span id="btnText">Despachar Ticket y Lote a Make + IA</span>
+                            </button>
+                        </div>
+
+
+                        <!-- Acciones Post-Procesamiento -->
+                        <div id="postResultActions" class="d-none mt-3 pt-3 border-top border-secondary border-opacity-25 d-flex flex-wrap gap-2 justify-content-between">
+                            <a id="linkVerSeguimiento" href="/mis-tickets" class="btn-pill-secondary flex-grow-1 justify-content-center">
+                                <i class="bi bi-eye text-info"></i> Ver Estado del Ticket
+                            </a>
+                            <a id="linkVerAgente" href="/agente/tickets" class="btn-pill-secondary flex-grow-1 justify-content-center">
+                                <i class="bi bi-robot text-warning"></i> Abrir en Consola Agente
+                            </a>
+                        </div>
+
+                        <!-- APARTADO CHATBOT DE ARCHIVOS: PREGUNTA A LA IA SOBRE TUS DOCUMENTOS -->
+                        <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:32px;height:32px;background:linear-gradient(135deg,#8b5cf6,#06b6d4);color:#fff;">
+                                        <i class="bi bi-robot"></i>
+                                    </span>
+                                    <div>
+                                        <h3 class="h6 fw-bold text-white mb-0" style="font-size:0.88rem;">Chatbot IA: Pregunta por tus Archivos</h3>
+                                        <div class="text-secondary" style="font-size:0.71rem;">Consulta en vivo sobre el contenido, formatos o prioridades de tu lote</div>
+                                    </div>
+                                </div>
+                                <span class="badge rounded-pill bg-success bg-opacity-25 text-success font-mono" style="font-size:0.66rem;">IA CHAT ONLINE</span>
+                            </div>
+
+                            <!-- Sugerencias rápidas de 1 clic -->
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                <button type="button" class="btn btn-sm rounded-pill text-white border border-primary border-opacity-50 py-1 px-2 fw-semibold" style="background:rgba(139,92,246,0.28);font-size:0.7rem;" onclick="askFileChatbot('Resúmeme todos los archivos de forma clara y detallada')">
+                                    📋 Resumir todos los archivos
+                                </button>
+                                <button type="button" class="btn btn-sm rounded-pill text-white border border-primary border-opacity-50 py-1 px-2 fw-semibold" style="background:rgba(139,92,246,0.28);font-size:0.7rem;" onclick="askFileChatbot('Resúmeme todos los archivos de forma clara y detallada')">
+                                    📋 Resumir todos los archivos
+                                </button>
+                                <button type="button" class="btn btn-sm rounded-pill text-info border border-info border-opacity-25 py-1 px-2" style="background:rgba(6,182,212,0.08);font-size:0.7rem;" onclick="askFileChatbot('¿Cuántos archivos hay por cada formato y cuánto pesan?')">
+                                    📊 ¿Cuántos hay por formato?
+                                </button>
+                                <button type="button" class="btn btn-sm rounded-pill text-light border border-secondary border-opacity-25 py-1 px-2" style="background:rgba(255,255,255,0.04);font-size:0.7rem;" onclick="askFileChatbot('¿Qué información tienen los archivos Excel (.xlsx)?')">
+                                    📈 Analizar Excel (.xlsx)
+                                </button>
+                                <button type="button" class="btn btn-sm rounded-pill text-light border border-secondary border-opacity-25 py-1 px-2" style="background:rgba(255,255,255,0.04);font-size:0.7rem;" onclick="askFileChatbot('Resume los documentos PDF y Word (.docx)')">
+                                    📑 Resumir PDF y Word
+                                </button>
+                                <button type="button" class="btn btn-sm rounded-pill text-warning border border-warning border-opacity-25 py-1 px-2" style="background:rgba(245,158,11,0.08);font-size:0.7rem;" onclick="askFileChatbot('¿Cuáles archivos tienen prioridad Alta o requieren atención urgente?')">
+                                    ⚠️ ¿Prioridad Alta?
+                                </button>
+                            </div>
+
+                            <!-- Ventana de mensajes del Chatbot -->
+                            <div id="fileChatbotMessages" class="p-3 rounded-4 mb-2" style="background:rgba(7,10,18,0.9);border:1px solid var(--glass-border);max-height:240px;overflow-y:auto;font-size:0.78rem;">
+                                <div class="p-2 rounded-3 mb-2" style="background:rgba(139,92,246,0.12);border-left:3px solid #8b5cf6;color:#e2e8f0;">
+                                    <div class="fw-bold text-info mb-1" style="font-size:0.72rem;"><i class="bi bi-stars me-1"></i>Asistente Documental IA</div>
+                                    <div>¡Hola! Carga tus archivos (o genera el lote demo de 30 archivos) y pregúntame lo que necesites saber sobre ellos: formatos, tablas de Excel, resúmenes de PDF/Word o alertas de prioridad.</div>
+                                </div>
+                            </div>
+
+                            <!-- Input del Chatbot -->
+                            <div class="d-flex gap-2">
+                                <input type="text" id="fileChatbotInput" class="form-control sleek-input py-2 px-3" style="font-size:0.8rem;" placeholder="Escribe tu pregunta sobre los archivos... (Ej: ¿Qué contienen los PDF?)" onkeydown="if(event.key==='Enter'){event.preventDefault();sendFileChatbotQuestion();}">
+                                <button type="button" onclick="sendFileChatbotQuestion()" class="btn btn-pill-primary py-2 px-3 flex-shrink-0" style="font-size:0.8rem;">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                    </aside>
+
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- Bootstrap 5.3.3 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+    <!-- GSAP 3.12.5 CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        (() => {
+            "use strict";
+
+            const MAX_FILES = 30;
+            const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024;
+            const ALLOWED_EXTS = new Set(["pdf", "xlsx", "docx", "jpg", "jpeg"]);
+            const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+            let batchFiles = [];
+
+            let lastCreatedTicketCode = null;
+            window.askFileChatbot = function(questionText) {
+                const inp = document.getElementById("fileChatbotInput");
+                if (inp) {
+                    inp.value = questionText;
+                    window.sendFileChatbotQuestion();
+                }
+            };
+
+            function formatBotMarkdown(md) {
+                if (!md) return "";
+                return md
+                    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                    .replace(/^### (.*)$/gm, '<div class="fw-bold text-info mt-2 mb-1" style="font-size:0.82rem;">$1</div>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+                    .replace(/`(.*?)`/g, '<code class="text-warning bg-dark px-1 rounded">$1</code>')
+                    .replace(/\n/g, "<br>");
+            }
+
+            function formatBotMarkdown(md) {
+                if (!md) return "";
+                return md
+                    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                    .replace(/^### (.*)$/gm, '<div class="fw-bold text-info mt-2 mb-1" style="font-size:0.82rem;">$1</div>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+                    .replace(/`(.*?)`/g, '<code class="text-warning bg-dark px-1 rounded">$1</code>')
+                    .replace(/\n/g, "<br>");
+            }
+
+            window.sendFileChatbotQuestion = async function() {
+                const inp = document.getElementById("fileChatbotInput");
+                const box = document.getElementById("fileChatbotMessages");
+                if (!inp || !box) return;
+                const q = inp.value.trim();
+                if (!q) return;
+                inp.value = "";
+
+                const uDiv = document.createElement("div");
+                uDiv.className = "p-2 rounded-3 mb-2 text-end";
+                uDiv.style.cssText = "background:rgba(6,182,212,0.16);border-right:3px solid #06b6d4;color:#f8fafc;";
+                uDiv.innerHTML = `<div class="fw-bold text-info mb-1" style="font-size:0.7rem;">Tú</div><div>${q}</div>`;
+                box.appendChild(uDiv);
+
+                const loadingDiv = document.createElement("div");
+                loadingDiv.className = "p-2 rounded-3 mb-2 text-secondary small";
+                loadingDiv.innerHTML = `<span class="spinner-border spinner-border-sm text-info me-2"></span>Leyendo y resumiendo el contenido de tus archivos...`;
+                box.appendChild(loadingDiv);
+                box.scrollTop = box.scrollHeight;
+
+                try {
+                    const fd = new FormData();
+                    fd.append("pregunta", q);
+                    fd.append("codigo_ticket", lastCreatedTicketCode || "");
+                    batchFiles.forEach((item) => {
+                        fd.append("archivos", item.file, item.file.name);
+                    });
+
+                    const res = await fetch("/api/v1/chatbot-archivos-upload", {
+                        method: "POST",
+                        body: fd
+                    });
+                    const data = await res.json();
+                    loadingDiv.remove();
+
+                    const bDiv = document.createElement("div");
+                    bDiv.className = "p-2.5 rounded-3 mb-2";
+                    bDiv.style.cssText = "background:rgba(139,92,246,0.13);border-left:3px solid #8b5cf6;color:#e2e8f0;line-height:1.55;padding:0.65rem 0.8rem;";
+                    bDiv.innerHTML = `<div class="fw-bold text-info mb-1" style="font-size:0.72rem;"><i class="bi bi-robot me-1"></i>Chatbot Documental IA (${data.total_archivos_contexto} archivo/s analizados)</div><div>${formatBotMarkdown(data.respuesta)}</div>`;
+                    box.appendChild(bDiv);
+                    box.scrollTop = box.scrollHeight;
+                } catch (e) {
+                    loadingDiv.remove();
+                    console.error(e);
+                }
+            };
+
+            function logToConsole(message, type = "info") {
+                const time = new Date().toLocaleTimeString("es-CO", { hour12: false });
+                const line = document.createElement("div");
+                line.className = "mb-1";
+                let colorClass = "text-secondary";
+                if (type === "success") colorClass = "text-success fw-semibold";
+                else if (type === "warn") colorClass = "text-warning";
+                else if (type === "error") colorClass = "text-danger fw-semibold";
+                else if (type === "ai") colorClass = "text-info";
+
+                line.innerHTML = `<span class="text-muted">[${time}]</span> <span class="${colorClass}">${message}</span>`;
+                consoleOutput.appendChild(line);
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            }
+
+            function formatBytes(bytes) {
+                if (bytes < 1024) return `${bytes} B`;
+                const kb = bytes / 1024;
+                if (kb < 1024) return `${kb.toFixed(1)} KB`;
+                return `${(kb / 1024).toFixed(2)} MB`;
+            }
+
+            function getFormatConfig(ext) {
+                switch (ext) {
+                    case "pdf":
+                        return { icon: "bi-file-earmark-pdf-fill", cls: "chip-pdf", label: "PDF" };
+                    case "xlsx":
+                        return { icon: "bi-file-earmark-spreadsheet-fill", cls: "chip-xlsx", label: "XLSX" };
+                    case "docx":
+                        return { icon: "bi-file-earmark-word-fill", cls: "chip-docx", label: "DOCX" };
+                    case "jpg":
+                    case "jpeg":
+                        return { icon: "bi-file-earmark-image-fill", cls: "chip-jpg", label: "JPG" };
+                    default:
+                        return { icon: "bi-file-earmark-fill", cls: "chip-docx", label: ext.toUpperCase() };
+                }
+            }
+
+            function updateBatchStats() {
+                const total = batchFiles.length;
+                const totalBytes = batchFiles.reduce((acc, item) => acc + item.file.size, 0);
+
+                countTotalEl.textContent = `${total} / ${MAX_FILES}`;
+                sizeTotalEl.textContent = formatBytes(totalBytes);
+
+                if (total > 0) {
+                    btnClearBatch.classList.remove("d-none");
+                } else {
+                    btnClearBatch.classList.add("d-none");
+                }
+
+                const counts = { pdf: 0, xlsx: 0, docx: 0, jpg: 0 };
+                batchFiles.forEach(({ ext }) => {
+                    if (ext === "pdf") counts.pdf++;
+                    else if (ext === "xlsx") counts.xlsx++;
+                    else if (ext === "docx") counts.docx++;
+                    else if (ext === "jpg" || ext === "jpeg") counts.jpg++;
+                });
+
+                statPdf.textContent = counts.pdf;
+                statXlsx.textContent = counts.xlsx;
+                statDocx.textContent = counts.docx;
+                statJpg.textContent = counts.jpg;
+            }
+
+            function createFileChipElement(item) {
+                const cfg = getFormatConfig(item.ext);
+                const chip = document.createElement("div");
+                chip.className = "file-chip";
+                chip.id = `chip-${item.id}`;
+
+                const truncatedName = item.file.name.length > 24
+                    ? item.file.name.slice(0, 15) + "..." + item.file.name.slice(-7)
+                    : item.file.name;
+
+                chip.innerHTML = `
+                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                        <div class="chip-icon ${cfg.cls}">
+                            <i class="bi ${cfg.icon}"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="text-white fw-semibold text-truncate" style="font-size: 0.8rem;" title="${item.file.name}">
+                                ${truncatedName}
+                            </div>
+                            <div class="text-secondary font-mono" style="font-size: 0.7rem;">
+                                ${cfg.label} • ${formatBytes(item.file.size)}
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-chip-remove" aria-label="Eliminar ${item.file.name}" data-id="${item.id}">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                `;
+
+                chip.querySelector(".btn-chip-remove").addEventListener("click", (ev) => {
+                    ev.stopPropagation();
+                    removeFileFromBatch(item.id);
+                });
+
+                chipsContainer.appendChild(chip);
+
+                if (!prefersReducedMotion && window.gsap) {
+                    gsap.fromTo(chip,
+                        { scale: 0.88, opacity: 0, y: 10 },
+                        { scale: 1, opacity: 1, y: 0, duration: 0.32, ease: "power3.out" }
+                    );
+                }
+            }
+
+            function removeFileFromBatch(id) {
+                const idx = batchFiles.findIndex((f) => f.id === id);
+                if (idx === -1) return;
+                const removed = batchFiles[idx];
+                batchFiles.splice(idx, 1);
+
+                const chipEl = document.getElementById(`chip-${id}`);
+                if (chipEl) {
+                    if (!prefersReducedMotion && window.gsap) {
+                        gsap.to(chipEl, {
+                            scale: 0.85,
+                            opacity: 0,
+                            y: -8,
+                            duration: 0.22,
+                            ease: "power2.in",
+                            onComplete: () => {
+                                chipEl.remove();
+                                updateBatchStats();
+                            }
+                        });
+                    } else {
+                        chipEl.remove();
+                        updateBatchStats();
+                    }
+                }
+                logToConsole(`Archivo removido del lote: ${removed.file.name}`, "warn");
+            }
+
+            function addFilesToBatch(fileList) {
+                const incoming = Array.from(fileList);
+                let addedCount = 0;
+
+                for (const file of incoming) {
+                    if (batchFiles.length >= MAX_FILES) {
+                        logToConsole(`Límite de ${MAX_FILES} archivos alcanzado. Se omitió '${file.name}'.`, "warn");
+                        break;
+                    }
+
+                    const ext = (file.name.split(".").pop() || "").toLowerCase();
+                    if (!ALLOWED_EXTS.has(ext)) {
+                        logToConsole(`Formato no admitido (.${ext}): '${file.name}'. Solo PDF, XLSX, DOCX, JPG.`, "error");
+                        continue;
+                    }
+
+                    if (file.size === 0) {
+                        logToConsole(`Archivo vacío (0 bytes) omitido: '${file.name}'.`, "error");
+                        continue;
+                    }
+
+                    if (file.size > MAX_FILE_SIZE_BYTES) {
+                        logToConsole(`Archivo '${file.name}' supera el límite de 15 MB.`, "error");
+                        continue;
+                    }
+
+                    const duplicate = batchFiles.some((b) => b.file.name === file.name && b.file.size === file.size);
+                    if (duplicate) continue;
+
+                    const item = {
+                        id: "fil-" + Math.random().toString(36).substring(2, 9),
+                        file,
+                        ext
+                    };
+                    batchFiles.push(item);
+                    createFileChipElement(item);
+                    addedCount++;
+                }
+
+                if (addedCount > 0) {
+                    logToConsole(`${addedCount} archivo(s) agregado(s) al lote (${batchFiles.length}/${MAX_FILES}).`, "ai");
+                }
+                updateBatchStats();
+                fileInput.value = "";
+            }
+
+            fileInput.addEventListener("change", (e) => addFilesToBatch(e.target.files));
+
+            ["dragenter", "dragover"].forEach((evtName) => {
+                dropzone.addEventListener(evtName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add("dragover");
+                });
+            });
+
+            ["dragleave", "drop"].forEach((evtName) => {
+                dropzone.addEventListener(evtName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove("dragover");
+                });
+            });
+
+            dropzone.addEventListener("drop", (e) => {
+                if (e.dataTransfer && e.dataTransfer.files) {
+                    addFilesToBatch(e.dataTransfer.files);
+                }
+            });
+
+            btnClearBatch.addEventListener("click", () => {
+                batchFiles = [];
+                chipsContainer.innerHTML = "";
+                updateBatchStats();
+                logToConsole("Lote vaciado por el usuario.", "warn");
+            });
+
+            function setPipelineStage(stageNumber, statusText, percent) {
+                liquidProgressBar.style.width = `${percent}%`;
+                progressPercent.textContent = `${percent}%`;
+                progressLabel.textContent = statusText;
+
+                const stages = [
+                    { el: document.getElementById("stage1"), icon: document.getElementById("stage1Icon"), defaultIcon: "bi-cloud-upload" },
+                    { el: document.getElementById("stage2"), icon: document.getElementById("stage2Icon"), defaultIcon: "bi-diagram-3" },
+                    { el: document.getElementById("stage3"), icon: document.getElementById("stage3Icon"), defaultIcon: "bi-cpu" }
+                ];
+
+                stages.forEach((st, idx) => {
+                    const currentIdx = idx + 1;
+                    st.el.classList.remove("active", "done");
+                    if (currentIdx < stageNumber) {
+                        st.el.classList.add("done");
+                        st.icon.innerHTML = `<i class="bi bi-check2-circle"></i>`;
+                    } else if (currentIdx === stageNumber && percent < 100) {
+                        st.el.classList.add("active");
+                        st.icon.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+                    } else if (percent === 100) {
+                        st.el.classList.add("done");
+                        st.icon.innerHTML = `<i class="bi bi-check2-circle"></i>`;
+                    } else {
+                        st.icon.innerHTML = `<i class="bi ${st.defaultIcon}"></i>`;
+                    }
+                });
+            }
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const nombre = document.getElementById("nombreCliente").value.trim();
+                const correo = document.getElementById("correoCliente").value.trim();
+                const titulo = document.getElementById("tituloTicket").value.trim();
+                const descripcion = promptTextarea.value.trim();
+
+                if (!nombre || !correo || !titulo || !descripcion) {
+                    logToConsole("Completa todos los campos obligatorios (*) antes de despachar.", "error");
+                    form.reportValidity();
+                    return;
+                }
+
+                btnSubmitBatch.disabled = true;
+                btnSpinner.classList.remove("d-none");
+                btnIcon.classList.add("d-none");
+                btnText.textContent = "Procesando Lote en Make + IA...";
+                pipelineBadgeState.className = "badge rounded-pill bg-info bg-opacity-25 text-info font-mono";
+                pipelineBadgeState.textContent = "RUNNING PIPELINE";
+                postResultActions.classList.add("d-none");
+
+                try {
+                    setPipelineStage(1, "Etapa 1/3: Subiendo lote y generando URLs firmadas HMAC...", 30);
+                    logToConsole(`Despachando ticket + lote de ${batchFiles.length} archivo(s) hacia Make Webhook...`, "ai");
+
+                    const formData = new FormData(form);
+                    formData.delete("archivos");
+                    batchFiles.forEach((item) => {
+                        formData.append("archivos", item.file, item.file.name);
+                    });
+
+                    await new Promise((r) => setTimeout(r, 400));
+
+                    setPipelineStage(2, `Etapa 2/3: Iterator & Router Make procesando ${batchFiles.length} archivo(s)...`, 72);
+                    logToConsole("Make Iterator activo -> Derivando por Router (.PDF, .XLSX, .DOCX, .JPG)...", "info");
+
+                    const response = await fetch("/api/v1/tickets-lote", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    setPipelineStage(3, "Etapa 3/3: Array Aggregator y síntesis IA completados.", 100);
+                    pipelineBadgeState.className = "badge rounded-pill bg-success bg-opacity-25 text-success font-mono";
+                    pipelineBadgeState.textContent = "COMPLETED";
+
+                    logToConsole(`¡ÉXITO! Ticket creado: ${data.codigo_seguimiento} | Prioridad IA: ${data.prioridad_final} (Confianza: ${Math.round(data.score_confianza * 100)}%)`, "success");
+                    if (data.batch_id) {
+                        logToConsole(`Lote Make ${data.batch_id}: ${data.accepted_count} archivo(s) procesados por el Router.`, "success");
+                        data.processed_files.slice(0, 6).forEach((f) => {
+                            logToConsole(` -> [${f.file_code}] ${f.filename} (.${f.extension.toUpperCase()}): ${f.doc_type} | Prio: ${f.priority}`, "ai");
+                        });
+                        if (data.processed_files.length > 6) {
+                            logToConsole(` ... y ${data.processed_files.length - 6} archivo(s) más consolidados en el ticket.`, "info");
+                        }
+                    }
+
+                    lastCreatedTicketCode = data.codigo_seguimiento;
+                    linkVerSeguimiento.href = `/mis-tickets?codigo=${data.codigo_seguimiento}`;
+                    linkVerAgente.href = `/agente/tickets/${data.id_ticket}`;
+                    postResultActions.classList.remove("d-none");
+                } catch (err) {
+                    setPipelineStage(1, "Error o modo local detectado.", 100);
+                    pipelineBadgeState.className = "badge rounded-pill bg-warning bg-opacity-25 text-warning font-mono";
+                    pipelineBadgeState.textContent = "FALLBACK";
+                    logToConsole(`Aviso en despacho: ${err.message}`, "error");
+                } finally {
+                    btnSpinner.classList.add("d-none");
+                    btnIcon.classList.remove("d-none");
+                    btnText.textContent = "Despachar Nuevo Ticket y Lote a Make + IA";
+                    btnSubmitBatch.disabled = false;
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

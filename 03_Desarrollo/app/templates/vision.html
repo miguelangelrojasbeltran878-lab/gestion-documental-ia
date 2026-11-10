@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Visión por Computador e IA Multimodal | EduSupport AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-obsidian: #0b0f19;
+            --surface-glass: rgba(255, 255, 255, 0.035);
+            --border-glass: rgba(255, 255, 255, 0.09);
+            --accent-cyan: #06b6d4;
+            --accent-violet: #8b5cf6;
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --ease-sleek: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-obsidian);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.15), transparent 35%),
+                radial-gradient(circle at 90% 15%, rgba(139, 92, 246, 0.15), transparent 35%),
+                radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.10), transparent 40%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .topbar-glass {
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid var(--border-glass);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .bento-card {
+            background: var(--surface-glass);
+            backdrop-filter: blur(18px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 1.6rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+        .btn-pill {
+            border-radius: 9999px;
+            padding: 0.65rem 1.4rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: transform 0.25s var(--ease-sleek);
+        }
+        .btn-pill:hover { transform: translateY(-2px); }
+        .btn-gradient {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+            border: none;
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.35);
+        }
+        .camera-dropzone {
+            border: 2px dashed rgba(6, 182, 212, 0.4);
+            border-radius: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 2.2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s var(--ease-sleek);
+        }
+        .camera-dropzone:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.08);
+            transform: scale(1.01);
+        }
+        .preview-img {
+            max-height: 280px;
+            object-fit: contain;
+            border-radius: 16px;
+            border: 1px solid var(--border-glass);
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar-glass py-3">
+        <div class="container-xxl d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <a href="/" class="d-flex align-items-center gap-3 text-decoration-none text-white">
+                <div class="rounded-4 d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:linear-gradient(135deg,#06b6d4,#8b5cf6);">
+                    <i class="bi bi-camera-fill fs-5"></i>
+                </div>
+                <div>
+                    <div class="fw-bold">Módulo de Visión por Computador & IA Multimodal</div>
+                    <div class="text-secondary" style="font-size:0.74rem;">Lectura de Facturas, Recibos y Formularios Escaneados o Fotos de Celular</div>
+                </div>
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <a href="/crear-solicitud" class="btn btn-outline-light btn-pill" style="border-color:var(--border-glass);">
+                    <i class="bi bi-ticket-perforated me-1"></i> Radicar Ticket
+                </a>
+                <a href="/agente/tickets" class="btn btn-gradient btn-pill">
+                    <i class="bi bi-headset me-1"></i> Bandeja Agente
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-xxl py-4">
+        <div class="row g-4">
+            <!-- Zona de Carga / Captura Móvil -->
+            <div class="col-lg-6">
+                <div class="bento-card">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="badge rounded-pill px-3 py-1" style="background:rgba(6,182,212,0.18);color:#67e8f9;border:1px solid rgba(6,182,212,0.35);">
+                            COMPONENTE 2: VISIÓN MULTIMODAL
+                        </span>
+                        <span class="text-secondary small font-monospace"><i class="bi bi-shield-check text-success me-1"></i>Ley 1581 / Control de Acceso</span>
+                    </div>
+
+                    <h2 class="h5 fw-bold mb-2">Capturar o Cargar Documento</h2>
+                    <p class="text-secondary small mb-4">
+                        Toma una fotografía directa desde tu celular o sube una imagen escaneada (.jpg, .png, .pdf). El motor extraerá los campos clave y devolverá JSON estructurado con confianza.
+                    </p>
+
+                    <div class="camera-dropzone mb-3" onclick="document.getElementById('inputVisionFile').click()">
+                        <i class="bi bi-camera text-info display-4 d-block mb-2"></i>
+                        <div class="fw-bold small text-white">Haz clic para tomar foto con la cámara o seleccionar archivo</div>
+                        <div class="text-secondary" style="font-size:0.75rem;">Admite facturas, recibos, capturas de error y formularios escaneados</div>
+                        <input type="file" id="inputVisionFile" accept="image/*,.pdf" capture="environment" class="d-none" onchange="previewSelectedImage(event)">
+                    </div>
+
+                    <div id="previewArea" class="d-none text-center mb-3">
+                        <img id="imgPreview" src="" alt="Previsualización" class="preview-img mb-2 shadow">
+                        <div id="imgPreviewName" class="small text-secondary font-monospace"></div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="button" id="btnProcesarVision" class="btn btn-gradient btn-pill" onclick="enviarProcesamientoVision()">
+                            <span id="spinVision" class="spinner-border spinner-border-sm d-none me-1"></span>
+                            <i id="iconVision" class="bi bi-cpu-fill me-1"></i> Procesar Documento con IA Multimodal
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Resultados Estructurados & Validación Humana -->
+            <div class="col-lg-6">
+                <div class="bento-card h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h3 class="h6 fw-bold mb-0"><i class="bi bi-braces-asterisk text-info me-2"></i>Información Estructurada (JSON)</h3>
+                            <span id="badgeConfianza" class="badge rounded-pill bg-dark text-secondary font-monospace">Confianza: --%</span>
+                        </div>
+
+                        <div id="emptyResultMsg" class="text-center py-5 text-secondary small">
+                            <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+                            Carga o toma una foto para visualizar los campos extraídos y el nivel de confianza.
+                        </div>
+
+                        <div id="resultContent" class="d-none">
+                            <div class="p-3 rounded-4 mb-3" style="background:rgba(15,23,42,0.75);border:1px solid var(--border-glass);">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge rounded-pill bg-primary bg-opacity-25 text-info font-monospace" id="resDocCode">VIS-XXXX</span>
+                                    <span class="badge rounded-pill" id="resDocTypeBadge">Factura</span>
+                                </div>
+                                <div class="small text-secondary mb-2" id="resDocSummary"></div>
+                                <div class="small text-light font-monospace" id="resDocProvider"></div>
+                            </div>
+
+                            <form id="formConfirmarCampos" class="space-y-2">
+                                <div class="mb-2">
+                                    <label class="form-label small text-secondary mb-1">Proveedor / Emisor:</label>
+                                    <input type="text" id="fieldEmisor" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-sm-6">
+                                        <label class="form-label small text-secondary mb-1">NIT / ID Fiscal:</label>
+                                        <input type="text" id="fieldNit" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label small text-secondary mb-1">Número Documento:</label>
+                                        <input type="text" id="fieldNumero" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                    </div>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-sm-6">
+                                        <label class="form-label small text-secondary mb-1">Fecha Emisión:</label>
+                                        <input type="date" id="fieldFecha" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label small text-secondary mb-1">Monto Total:</label>
+                                        <input type="number" step="0.01" id="fieldMonto" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 flex-grow-1" onclick="confirmarCampos(true)">
+                                        <i class="bi bi-check-circle me-1"></i> Confirmar y Guardar Registro
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="confirmarCampos(false)">
+                                        <i class="bi bi-x-circle me-1"></i> Rechazar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top small text-secondary" style="border-color:var(--border-glass)!important;">
+                        <i class="bi bi-info-circle me-1 text-info"></i>Si la confianza es inferior al 75%, el sistema marca el documento como <strong>Pendiente de Revisión</strong> para validación humana obligatoria.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial de Documentos Procesados -->
+        <div class="bento-card mt-4">
+            <h3 class="h6 fw-bold mb-3"><i class="bi bi-clock-history text-info me-2"></i>Historial de Documentos e Imágenes Procesadas ({{ documentos | length }})</h3>
+            {% if documentos %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0" style="background:transparent;font-size:0.82rem;">
+                    <thead>
+                        <tr class="text-secondary small">
+                            <th>CÓDIGO</th>
+                            <th>NOMBRE</th>
+                            <th>TIPO DETECTADO</th>
+                            <th>CONFIANZA</th>
+                            <th>PROVEEDOR IA</th>
+                            <th>ESTADO</th>
+                            <th>FECHA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in documentos %}
+                        <tr>
+                            <td class="font-monospace text-info">{{ d.codigo }}</td>
+                            <td>{{ d.nombre_original }}</td>
+                            <td><span class="badge bg-dark border text-light">{{ d.tipo_documento | upper }}</span></td>
+                            <td>
+                                {% if d.confianza %}
+                                    <span class="{% if d.confianza >= 0.75 %}text-success{% else %}text-warning{% endif %} fw-bold">
+                                        {{ (d.confianza * 100) | int }}%
+                                    </span>
+                                {% else %}
+                                    <span class="text-secondary">--</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="text-secondary font-monospace">{{ d.proveedor or 'local' }}</span></td>
+                            <td>
+                                <span class="badge rounded-pill
+                                    {% if d.estado == 'CONFIRMADO' %}text-bg-success bg-opacity-25 text-success border border-success border-opacity-25
+                                    {% elif d.estado == 'PENDIENTE_REVISION' %}text-bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25
+                                    {% else %}text-bg-secondary{% endif %}">
+                                    {{ d.estado }}
+                                </span>
+                            </td>
+                            <td class="text-secondary">{{ d.fecha_carga.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-secondary small mb-0">Aún no hay documentos registrados en el módulo de visión.</p>
+            {% endif %}
+        </div>
+    </main>
+
+    <script>
+        let currentVisionFile = null;
+        let currentVisionCode = null;
+
+        function previewSelectedImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            currentVisionFile = file;
+            document.getElementById('imgPreviewName').textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    document.getElementById('imgPreview').src = evt.target.result;
+                    document.getElementById('previewArea').classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('imgPreview').src = '';
+                document.getElementById('previewArea').classList.remove('d-none');
+            }
+        }
+
+        async function enviarProcesamientoVision() {
+            if (!currentVisionFile) {
+                alert("Por favor selecciona o toma una fotografía primero.");
+                return;
+            }
+            const btn = document.getElementById('btnProcesarVision');
+            const spin = document.getElementById('spinVision');
+            const icon = document.getElementById('iconVision');
+            btn.disabled = true;
+            spin.classList.remove('d-none');
+            icon.classList.add('d-none');
+
+            const fd = new FormData();
+            fd.append('archivo', currentVisionFile, currentVisionFile.name);
+            fd.append('cargado_por', 'interfaz_web');
+
+            try {
+                const res = await fetch('/api/v1/vision/procesar', {
+                    method: 'POST',
+                    body: fd
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Error procesando documento');
+
+                currentVisionCode = data.codigo;
+                document.getElementById('emptyResultMsg').classList.add('d-none');
+                document.getElementById('resultContent').classList.remove('d-none');
+
+                document.getElementById('resDocCode').textContent = data.codigo;
+                document.getElementById('resDocTypeBadge').textContent = (data.tipo_documento || 'documento').toUpperCase();
+                document.getElementById('resDocSummary').textContent = data.resumen || 'Sin resumen disponible';
+                document.getElementById('resDocProvider').textContent = `Proveedor IA: ${data.proveedor} | Estado: ${data.estado}`;
+
+                const pct = Math.round((data.confianza || 0) * 100);
+                const badge = document.getElementById('badgeConfianza');
+                badge.textContent = `Confianza: ${pct}%`;
+                badge.className = `badge rounded-pill font-mono ${pct >= 75 ? 'bg-success text-white' : 'bg-warning text-dark'}`;
+
+                const f = data.campos || {};
+                document.getElementById('fieldEmisor').value = f.emisor_o_proveedor || '';
+                document.getElementById('fieldNit').value = f.identificacion_fiscal_nit || '';
+                document.getElementById('fieldNumero').value = f.numero_documento || '';
+                document.getElementById('fieldFecha').value = f.fecha_emision || '';
+                document.getElementById('fieldMonto').value = f.monto_total || 0;
+
+            } catch (err) {
+                alert('Fallo en el procesamiento: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                spin.classList.add('d-none');
+                icon.classList.remove('d-none');
+            }
+        }
+
+        async function confirmarCampos(aceptar) {
+            if (!currentVisionCode) return;
+            const payload = {
+                emisor_o_proveedor: document.getElementById('fieldEmisor').value,
+                identificacion_fiscal_nit: document.getElementById('fieldNit').value,
+                numero_documento: document.getElementById('fieldNumero').value,
+                fecha_emision: document.getElementById('fieldFecha').value,
+                monto_total: parseFloat(document.getElementById('fieldMonto').value) || 0,
+                aceptado_por_usuario: aceptar
+            };
+            try {
+                const res = await fetch(`/api/v1/vision/${currentVisionCode}/confirmar`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    alert(aceptar ? '¡Documento verificado y confirmado con éxito!' : 'Documento marcado para revisión manual.');
+                    window.location.reload();
+                }
+            } catch (e) {
+                alert('Error al confirmar: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
