@@ -36,6 +36,7 @@
         <div class="field"><label class="lbl" for="fFecha">Fecha</label><input id="fFecha" type="text" placeholder="AAAA-MM-DD"><div class="bar" style="margin-top:.3rem"><i data-c="fecha_emision"></i></div></div>
       </div>
       <div class="field"><label class="lbl" for="fMonto">Total (COP)</label><input id="fMonto" type="number" step="0.01"><div class="bar" style="margin-top:.3rem"><i data-c="monto_total"></i></div></div>
+      <div class="alert ok" id="final" hidden style="margin-bottom:.8rem"></div>
       <p class="small muted" id="rInfo"></p>
       <div class="row">
         <button class="btn" id="ok"><i class="bi bi-check2-circle"></i> Confirmar y registrar</button>
@@ -83,14 +84,23 @@
     const sinLectura = !Object.values(f).some(Boolean);
     $('#noread').hidden = !sinLectura;
     if (sinLectura) $('#noreadTxt').textContent = 'No se pudo leer texto del documento (sin OCR ni modelo disponible). Puedes completar los campos a mano y confirmar.';
-    const tipo = d.tipo_documento || 'otro';
+    let tipo = String(d.tipo_documento || 'otro').toLowerCase().trim().replace(/\s+/g, '_');
+    if (tipo.startsWith('factura')) tipo = 'factura';
+    else if (tipo.startsWith('recibo')) tipo = 'recibo_pago';
+    else if (tipo.startsWith('cuenta')) tipo = 'cuenta_cobro';
+    else if (tipo.startsWith('captura')) tipo = 'captura_error';
     const valido = [...$('#fTipo').options].some((o) => o.value === tipo);
     $('#fTipo').value = valido && !(tipo === 'otro' && sinLectura) ? tipo : (sinLectura ? 'factura' : 'otro');
     $('#fEmisor').value = f.emisor_o_proveedor || ''; $('#fNit').value = f.identificacion_fiscal_nit || '';
     $('#fNum').value = f.numero_documento || ''; $('#fFecha').value = f.fecha_emision || ''; $('#fMonto').value = f.monto_total || '';
     document.querySelectorAll('[data-c]').forEach((i) => { const v = (d.confianza_campos || {})[i.dataset.c]; i.style.width = (v == null ? 0 : Math.round(v * 100)) + '%'; i.parentElement.className = 'bar ' + (v >= .75 ? '' : v >= .5 ? 'warn' : 'bad'); });
     $('#rInfo').textContent = 'Proveedor IA: ' + (d.proveedor || 'local') + ' · Estado: ' + d.estado.replace('_', ' ');
-    $('#ok').disabled = $('#no').disabled = d.estado === 'RECHAZADO' || d.estado === 'CONFIRMADO';
+    const cerrado = d.estado === 'RECHAZADO' || d.estado === 'CONFIRMADO';
+    $('#ok').disabled = $('#no').disabled = cerrado;
+    const fin = $('#final');
+    fin.hidden = !cerrado;
+    if (d.estado === 'CONFIRMADO') fin.innerHTML = '<i class="bi bi-check-circle"></i><div><b>Confirmado automáticamente.</b> La confianza (' + pct + '%) supera el umbral de 75 %, por eso no requiere revisión: el gasto ya se registró. Puedes verlo en Auditoría.</div>';
+    else if (d.estado === 'RECHAZADO') fin.innerHTML = '<i class="bi bi-x-circle"></i><div><b>Documento rechazado.</b> No se registró ningún gasto.</div>';
   }
 
   $('#go').onclick = async () => {
