@@ -73,6 +73,16 @@ def tool_resumen_tickets(db: Session, limite: int = 5) -> str:
     return "\n".join(lineas)
 
 
+def tool_ultimos_tickets(db: Session, limite: int = 8) -> str:
+    """Los tickets más recientes (código, título, estado, prioridad y fecha) para poder responder 'el último', 'otro', etc."""
+    ts = db.query(models.Ticket).order_by(models.Ticket.fecha_creacion.desc()).limit(limite).all()
+    if not ts:
+        return "No hay tickets registrados."
+    return "Tickets más recientes (del más nuevo al más antiguo):\n" + "\n".join(
+        f"- {t.codigo_seguimiento}: «{t.titulo}», {t.estado}, prioridad {t.prioridad}, creado {t.fecha_creacion:%Y-%m-%d %H:%M}"
+        for t in ts)
+
+
 def tool_pendientes_vision(db: Session, limite: int = 5) -> str:
     docs = (db.query(models.DocumentoVision).filter(models.DocumentoVision.estado == "PENDIENTE_REVISION")
             .order_by(models.DocumentoVision.fecha_carga.desc()).limit(limite).all())
@@ -107,6 +117,11 @@ def _nodo_recuperar(state: EstadoChat, config: RunnableConfig) -> Dict[str, Any]
     if any(k in q_low for k in ["ticket", "abierto", "prioridad", "resumen", "operación", "operacion", "carga", "urgente", "hoy"]):
         partes.append("Estado de la mesa de ayuda:\n" + tool_resumen_tickets(db))
         usadas.append("resumen_tickets")
+    # Sin código explícito, se entrega siempre la lista reciente: así "el último", "otro", "no fue ese" tienen datos
+    # (la conversación previa también llega al modelo, que puede referirse a lo ya dicho).
+    if not m:
+        partes.append(tool_ultimos_tickets(db))
+        usadas.append("ultimos_tickets")
     if any(k in q_low for k in ["pendiente", "revisión", "revision", "por revisar", "visión", "vision"]):
         partes.append("Visión por computador:\n" + tool_pendientes_vision(db))
         usadas.append("pendientes_vision")
@@ -121,7 +136,8 @@ def _nodo_responder(state: EstadoChat, config: RunnableConfig) -> Dict[str, Any]
     previo = "\n".join(f"{'Usuario' if m['role'] == 'user' else 'Asistente'}: {m['content']}" for m in historial[:-1])
     prompt = (
         "Eres el asistente del sistema de gestión documental y mesa de ayuda. Responde en español, claro y conciso, "
-        "usando SOLO los datos del contexto; si no los tienes, dilo y explica cómo obtenerlos.\n"
+        "usando SOLO los datos del contexto y de la conversación previa; si el usuario dice que una respuesta no era la correcta, "
+        "propón la siguiente opción que sí aparezca en el contexto. Si no tienes el dato, dilo y explica cómo obtenerlo.\n"
         "Funciones del sistema: radicar solicitudes, subir fotos de facturas en /vision (extrae emisor, NIT, fecha, total y "
         "pide revisión humana si la confianza es baja), consultar tickets y resumir expedientes.\n\n"
         f"Conversación previa:\n{privacy.anonimizar_texto(previo) or '(inicio)'}\n\n"
