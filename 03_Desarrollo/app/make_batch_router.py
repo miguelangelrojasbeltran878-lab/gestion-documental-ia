@@ -1,37 +1,38 @@
-import os
-import io
-import uuid
+"""Recepción de lotes de archivos (hasta 35) y consulta de su estado.
+
+Antes este módulo orquestaba un escenario externo de Make; ahora el procesamiento lo hace el motor propio
+(`automation_flows.procesar_lote_documental`) con reintentos y registro de ejecuciones.
+"""
 import hmac
 import hashlib
+import io
+import os
+import uuid
 import zipfile
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from typing import List, Dict, Any
-import httpx
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Header, Request, Depends
+from typing import List, Dict, Any, Optional
+
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from .database import get_db, SessionLocal
-from . import models
+from . import models, config, auth, automation_engine
+from .database import get_db
 
-router = APIRouter(prefix="/api/v1/lotes", tags=["Make Batch Integration (~30 Archivos)"])
+router = APIRouter(prefix="/api/v1/lotes", tags=["Lotes documentales"])
 
-MAKE_WEBHOOK_URL = os.getenv("MAKE_WEBHOOK_URL", "")
-PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "http://127.0.0.1:8000")
-CALLBACK_SECRET = os.getenv("MAKE_CALLBACK_SECRET", "whsec_c4f9b2a8e1d70536")
+UPLOAD_DIR = config.BATCH_DIR
+PUBLIC_BASE_URL = config.PUBLIC_BASE_URL
 
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "temp_batches")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-ALLOWED_EXTENSIONS = {"pdf", "xlsx", "docx", "jpg", "jpeg"}
+ALLOWED_EXTENSIONS = {"pdf", "xlsx", "docx", "jpg", "jpeg", "png", "webp", "txt", "csv"}
 MAX_FILES_PER_BATCH = 35
 MAX_FILE_SIZE_MB = 15
 
 
 def sign_file_token(batch_code: str, file_code: str) -> str:
     payload = f"{batch_code}:{file_code}".encode("utf-8")
-    return hmac.new(CALLBACK_SECRET.encode("utf-8"), payload, hashlib.sha256).hexdigest()
+    return hmac.new(config.FILE_TOKEN_SECRET.encode("utf-8"), payload, hashlib.sha256).hexdigest()
 
 
 def extract_office_or_text_content(ext: str, raw_bytes: bytes) -> str:
@@ -50,163 +51,15 @@ def extract_office_or_text_content(ext: str, raw_bytes: bytes) -> str:
                     tree = ET.fromstring(xml_content)
                     cells = [node.text for node in tree.iter() if node.tag.endswith("}t") and node.text]
                     return " | ".join(cells)[:4000]
+        elif ext == "pdf":
+            from pypdf import PdfReader
+            reader = PdfReader(io.BytesIO(raw_bytes))
+            return " ".join((pg.extract_text() or "") for pg in reader.pages[:10])[:4000]
+        elif ext in ("jpg", "jpeg", "png", "webp"):
+            return ""  # las imágenes se interpretan en el módulo de visión, no como texto
         return raw_bytes[:4096].decode("utf-8", errors="ignore")
     except Exception:
         return ""
-
-
-def analyze_multimodal_file(filename: str, ext: str, size_bytes: int, raw_bytes: bytes) -> Dict[str, Any]:
-    """
-    Motor de extracción multimodal por tipo de archivo (.pdf, .xlsx, .docx, .jpg)
-    siguiendo las 3 rutas del Router de Make.
-    """
-    extracted_text = extract_office_or_text_content(ext, raw_bytes)
-    combined = f"{filename} {extracted_text}".lower()
-
-    if ext == "pdf":
-        doc_type = "Documento PDF (Lectura / OCR Multimodal)"
-    elif ext == "xlsx":
-        doc_type = "Hoja de Cálculo Excel (Parseo Tabular / CSV)"
-    elif ext == "docx":
-        doc_type = "Documento Word (Extracción Estructurada)"
-    elif ext in ("jpg", "jpeg"):
-        doc_type = "Imagen / Evidencia Visual (Visión por Computadora)"
-    else:
-        doc_type = "Documento Adjunto"
-
-    if any(k in combined for k in ["error", "critico", "crítico", "caido", "caído", "timeout", "urgente", "falla", "500", "bloqueo", "hack", "inaccesible"]):
-        prio = "Alta"
-        rec = "Atención prioritaria: Evidencia técnica confirma bloqueo o caída de servicio."
-    elif any(k in combined for k in ["factura", "inventario", "reporte", "pago", "acceso", "cuenta", "configuracion", "lento", "demora", "auditoria"]):
-        prio = "Media"
-        rec = "Verificar datos extraídos del archivo y validar configuración o cuenta del cliente."
-    else:
-        prio = "Baja"
-        rec = "Respaldo documental procesado y anexado al expediente del ticket."
-
-    size_kb = round(size_bytes / 1024, 1)
-    snippet = ""
-    if extracted_text.strip():
-        clean_text = " ".join(extracted_text.split())[:140]
-        snippet = f" Contenido clave: \"{clean_text}\""
-
-    resumen = f"[{doc_type}] '{filename}' ({size_kb} KB) procesado con éxito.{snippet}"
-    return {
-        "status": "PROCESSED",
-        "document_type": doc_type,
-        "extracted_summary": resumen,
-        "suggested_priority": prio,
-        "ai_action_recommendation": rec,
-        "confidence_score": 0.96
-    }
-
-
-def execute_make_pipeline_sync_or_webhook(batch_code: str, manifest: Dict[str, Any]):
-    """
-    Si MAKE_WEBHOOK_URL está configurado con un endpoint externo de Make.com, envía el manifiesto JSON.
-    Además, procesa el pipeline (Iterator -> Router PDF/XLSX/DOCX/JPG -> IA -> Array Aggregator)
-    para garantizar disponibilidad inmediata tanto en entorno local como híbrido.
-    """
-    db = SessionLocal()
-    try:
-        lote = db.query(models.LoteArchivos).filter_by(batch_code=batch_code).first()
-        if not lote:
-            return
-
-        lote.estado_make = "PROCESSING_IN_MAKE"
-        db.commit()
-
-        # Si hay un Webhook real de Make configurado, enviamos el manifiesto JSON
-        if MAKE_WEBHOOK_URL and MAKE_WEBHOOK_URL.startswith("https://hook.") and "reemplazar" not in MAKE_WEBHOOK_URL:
-            try:
-                with httpx.Client(timeout=20.0) as client:
-                    client.post(
-                        MAKE_WEBHOOK_URL,
-                        json=manifest,
-                        headers={"X-Webhook-Secret": CALLBACK_SECRET}
-                    )
-            except Exception:
-                pass
-
-        # Ejecución del flujo Iterator -> Router (.pdf, .xlsx, .docx, .jpg) -> IA -> Array Aggregator
-        summaries = []
-        highest_prio = "Baja"
-        prio_rank = {"Baja": 1, "Media": 2, "Alta": 3}
-        counts_by_ext = {"pdf": 0, "xlsx": 0, "docx": 0, "jpg": 0}
-
-        for arch in lote.archivos:
-            ext_key = "jpg" if arch.extension in ("jpg", "jpeg") else arch.extension
-            if ext_key in counts_by_ext:
-                counts_by_ext[ext_key] += 1
-
-            if not os.path.exists(arch.ruta_temporal) or arch.tamano_bytes == 0:
-                arch.estado_procesamiento = "ERROR_UNREADABLE"
-                arch.tipo_documento_ia = "Archivo Corrupto / Vacío (Directiva Resume)"
-                arch.resumen_extraido_ia = "El archivo está vacío o dañado. Omitido mediante directiva Resume de Make sin detener el lote."
-                arch.prioridad_detectada = "Baja"
-                arch.recomendacion_ia = "Solicitar al cliente reenviar este archivo específico."
-                arch.score_confianza = 0.0
-                continue
-
-            with open(arch.ruta_temporal, "rb") as fp:
-                raw_bytes = fp.read()
-
-            res = analyze_multimodal_file(arch.nombre_original, arch.extension, arch.tamano_bytes, raw_bytes)
-            arch.estado_procesamiento = res["status"]
-            arch.tipo_documento_ia = res["document_type"]
-            arch.resumen_extraido_ia = res["extracted_summary"]
-            arch.prioridad_detectada = res["suggested_priority"]
-            arch.recomendacion_ia = res["ai_action_recommendation"]
-            arch.score_confianza = res["confidence_score"]
-
-            if prio_rank.get(res["suggested_priority"], 1) > prio_rank.get(highest_prio, 1):
-                highest_prio = res["suggested_priority"]
-
-            summaries.append(
-                f"• [{arch.file_code}] {arch.nombre_original} ({arch.extension.upper()}): Prioridad {res['suggested_priority']} — {res['ai_action_recommendation']}"
-            )
-            lote.archivos_procesados += 1
-
-        lote.estado_make = "COMPLETED"
-        lote.fecha_completado = datetime.utcnow()
-
-        dist_str = f"PDF: {counts_by_ext['pdf']} | XLSX: {counts_by_ext['xlsx']} | DOCX: {counts_by_ext['docx']} | JPG: {counts_by_ext['jpg']}"
-        lote.sintesis_global_ia = (
-            f"Lote Make {batch_code} procesado ({lote.archivos_procesados}/{lote.total_archivos} archivos válidos). "
-            f"Distribución por Router: [{dist_str}]. Prioridad consolidada del lote: {highest_prio}.\n"
-            + "\n".join(summaries[:35])
-        )
-
-        ticket = db.query(models.Ticket).filter_by(id_ticket=lote.id_ticket).first()
-        if ticket:
-            if prio_rank.get(highest_prio, 1) > prio_rank.get(ticket.prioridad, 1):
-                ticket.prioridad = highest_prio
-            resumen_ejecutivo_cliente = (
-                f"\n\n📂 RESUMEN EJECUTIVO DE TU LOTE DOCUMENTAL ({lote.archivos_procesados} ARCHIVOS ANALIZADOS):\n"
-                f"• Código de Lote Make: {batch_code} (Estado: Completado 100%)\n"
-                f"• Distribución por Formato: {dist_str}\n"
-                f"• Nivel de Prioridad Detectado en Evidencias: {highest_prio}\n"
-                f"• Hallazgo Principal: Todos tus documentos (.pdf, .xlsx, .docx, .jpg) fueron validados e indexados en tu expediente sin errores de lectura."
-            )
-            if ticket.sugerencia_ia:
-                ticket.sugerencia_ia.prioridad_sugerida = ticket.prioridad
-                ticket.sugerencia_ia.respuesta_sugerida += resumen_ejecutivo_cliente
-            if ticket.respuesta_oficial:
-                ticket.respuesta_oficial += resumen_ejecutivo_cliente
-
-            msg_lote = models.MensajeTicket(
-                id_ticket=ticket.id_ticket,
-                remitente_tipo="IA",
-                remitente_nombre="Orquestador Make + IA Multimodal",
-                contenido=(
-                    f"Se completó el análisis automático de tu lote {batch_code} con {lote.archivos_procesados} archivo(s) "
-                    f"({dist_str}). Prioridad consolidada de evidencias: {highest_prio}."
-                )
-            )
-            db.add(msg_lote)
-        db.commit()
-    finally:
-        db.close()
 
 
 def handle_ticket_files_batch(
@@ -214,7 +67,7 @@ def handle_ticket_files_batch(
     ticket: models.Ticket,
     archivos: List[UploadFile]
 ) -> Dict[str, Any]:
-    """Recibe el lote de archivos adjuntos (.pdf, .xlsx, .docx, .jpg), guarda, firma URLs y ejecuta el flujo Make."""
+    """Recibe el lote de archivos adjuntos (.pdf, .xlsx, .docx, .jpg), los guarda y ejecuta el flujo del motor propio."""
     valid_uploads = [u for u in archivos if u and u.filename and u.filename.strip()]
     if not valid_uploads:
         return {"batch_id": None, "accepted_count": 0, "skipped_files": []}
@@ -248,7 +101,7 @@ def handle_ticket_files_batch(
         if ext not in ALLOWED_EXTENSIONS:
             skipped_files.append({
                 "filename": upload.filename,
-                "reason": f"Formato .{ext} no admitido (Solo .pdf, .xlsx, .docx, .jpg)"
+                "reason": f"Formato .{ext} no admitido (Se admiten .pdf, .xlsx, .docx, .txt, .csv, .jpg, .png, .webp)"
             })
             continue
 
@@ -299,15 +152,18 @@ def handle_ticket_files_batch(
         "batch_id": batch_code,
         "ticket_id": ticket.id_ticket,
         "codigo_seguimiento": ticket.codigo_seguimiento,
-        "callback_url": f"{PUBLIC_BASE_URL}/api/v1/lotes/callback",
-        "callback_secret": CALLBACK_SECRET,
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "total_files": len(manifest_files),
         "files": manifest_files
     }
 
     if manifest_files:
-        execute_make_pipeline_sync_or_webhook(batch_code, manifest)
+        from app import automation_flows
+        automation_engine.ejecutar_servicio_con_auditoria(
+            db=db, flujo="procesamiento_lote", proceso="PROCESAR_LOTE",
+            func=lambda: automation_flows.procesar_lote_documental(db, batch_code),
+            usuario=ticket.cliente.correo_electronico if ticket.cliente else "sistema",
+            id_ticket=ticket.id_ticket, entrada_resumen=f"{batch_code}: {len(manifest_files)} archivo(s)")
 
     db.refresh(db_lote)
     return {
@@ -323,13 +179,14 @@ def handle_ticket_files_batch(
 def api_procesar_lote(
     ticket_id: int = Form(...),
     archivos: List[UploadFile] = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: models.UsuarioAgente = Depends(auth.require_authenticated_agent),
 ):
-    """Endpoint REST para enviar un lote de hasta ~30 archivos (.pdf, .xlsx, .docx, .jpg) a un ticket existente."""
+    """Envía un lote de hasta 35 archivos a un ticket existente (solo agentes con acceso al expediente)."""
     ticket = db.query(models.Ticket).filter_by(id_ticket=ticket_id).first()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket no encontrado")
-
+    auth.ensure_ticket_access(ticket, user)
     res = handle_ticket_files_batch(db, ticket, archivos)
     if res["accepted_count"] == 0 and not res["skipped_files"]:
         raise HTTPException(status_code=400, detail="No se adjuntaron archivos válidos.")
@@ -337,59 +194,44 @@ def api_procesar_lote(
 
 
 @router.get("/temp-files/{batch_code}/{stored_name}")
-def api_descargar_archivo_lote(batch_code: str, stored_name: str, token: str = ""):
-    """Permite a Make (HTTP > Get a file) y a los agentes descargar el archivo original."""
+def api_descargar_archivo_lote(
+    batch_code: str,
+    stored_name: str,
+    token: str = "",
+    user: Optional[models.UsuarioAgente] = Depends(auth.get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Descarga un archivo del lote: exige sesión con acceso al expediente o un token HMAC válido."""
+    if os.path.basename(stored_name) != stored_name or os.path.basename(batch_code) != batch_code:
+        raise HTTPException(status_code=400, detail="Nombre de archivo inválido.")
     file_code = stored_name.rsplit(".", 1)[0]
-    if token and not hmac.compare_digest(token, sign_file_token(batch_code, file_code)):
-        raise HTTPException(status_code=403, detail="Token de descarga inválido.")
+    if token:
+        if not hmac.compare_digest(token, sign_file_token(batch_code, file_code)):
+            raise HTTPException(status_code=403, detail="Token de descarga inválido.")
+    elif not user:
+        raise HTTPException(status_code=401, detail="Se requiere iniciar sesión para descargar archivos.")
+    else:
+        lote = db.query(models.LoteArchivos).filter_by(batch_code=batch_code).first()
+        if lote and lote.ticket:
+            auth.ensure_ticket_access(lote.ticket, user)
     full_path = os.path.join(UPLOAD_DIR, batch_code, stored_name)
     if not os.path.exists(full_path):
         raise HTTPException(status_code=404, detail="Archivo no encontrado.")
     return FileResponse(full_path, filename=stored_name)
 
 
-@router.post("/callback")
-async def api_make_callback(
-    request: Request,
-    x_callback_secret: str = Header(None, alias="X-Callback-Secret"),
-    db: Session = Depends(get_db)
-):
-    """Endpoint Callback que recibe el resultado consolidado del Array Aggregator de Make."""
-    if not x_callback_secret or not hmac.compare_digest(x_callback_secret, CALLBACK_SECRET):
-        raise HTTPException(status_code=401, detail="No autorizado: X-Callback-Secret inválido.")
-
-    payload = await request.json()
-    batch_code = payload.get("batch_id")
-    lote = db.query(models.LoteArchivos).filter_by(batch_code=batch_code).first()
-    if not lote:
-        raise HTTPException(status_code=404, detail="Lote no encontrado.")
-
-    results = payload.get("files_results", [])
-    for item in results:
-        arch = db.query(models.ArchivoAdjunto).filter_by(
-            id_lote=lote.id_lote, file_code=item.get("file_id")
-        ).first()
-        if arch:
-            arch.estado_procesamiento = item.get("status", "PROCESSED")
-            arch.tipo_documento_ia = item.get("document_type", "Procesado en Make")
-            arch.resumen_extraido_ia = item.get("extracted_summary", "")
-            arch.prioridad_detectada = item.get("suggested_priority", "Media")
-            arch.recomendacion_ia = item.get("ai_action_recommendation", "")
-            arch.score_confianza = float(item.get("confidence_score", 0.95))
-
-    lote.archivos_procesados = len(results)
-    lote.estado_make = payload.get("status", "COMPLETED")
-    lote.fecha_completado = datetime.utcnow()
-    db.commit()
-    return {"status": "ACK", "batch_id": batch_code, "updated_files": len(results)}
-
-
 @router.get("/estado/{batch_code}")
-def api_consultar_estado_lote(batch_code: str, db: Session = Depends(get_db)):
-    """Retorna el estado del lote y el análisis IA individual de los ~30 archivos."""
+def api_consultar_estado_lote(
+    batch_code: str,
+    db: Session = Depends(get_db),
+    user: models.UsuarioAgente = Depends(auth.require_authenticated_agent),
+):
+    """Estado del lote y análisis individual de sus archivos (agentes con acceso al expediente)."""
     lote = db.query(models.LoteArchivos).filter_by(batch_code=batch_code).first()
     if not lote:
         raise HTTPException(status_code=404, detail="Lote no encontrado.")
+    if lote.ticket:
+        auth.ensure_ticket_access(lote.ticket, user)
     return {
         "batch_id": lote.batch_code,
         "ticket_id": lote.id_ticket,
@@ -408,33 +250,8 @@ def api_consultar_estado_lote(batch_code: str, db: Session = Depends(get_db)):
                 "extracted_summary": a.resumen_extraido_ia,
                 "suggested_priority": a.prioridad_detectada,
                 "ai_action_recommendation": a.recomendacion_ia,
-                "confidence_score": a.score_confianza
+                "confidence_score": a.score_confianza,
             }
             for a in lote.archivos
-        ]
-    }
-
-
-@router.get("/blueprint.json")
-def descargar_make_blueprint():
-    """Devuelve el archivo Blueprint JSON oficial importable directamente en Make.com (Integromat)."""
-    return {
-        "name": "EduSupport_AI_Batch_30_Multimodal_Pipeline",
-        "flow": [
-            {"id": 1, "module": "gateway:CustomWebHook", "version": 1, "metadata": {"Label": "1. Custom Webhook (Recibe Lote 30 Archivos)"}},
-            {"id": 2, "module": "gateway:WebhookRespond", "version": 1, "mapper": {"status": "202", "body": "{\"status\":\"ACCEPTED\"}"}},
-            {"id": 3, "module": "builtin:BasicFeeder", "version": 1, "mapper": {"array": "{{1.files}}"}, "metadata": {"Label": "3. Iterator (30 Archivos)"}},
-            {
-                "id": 4,
-                "module": "builtin:BasicRouter",
-                "version": 1,
-                "routes": [
-                    {"label": "Ruta A: PDF y DOCX (OCR / Assistants)", "filter": "lower(3.extension) in ['pdf','docx']", "modules": ["http:ActionGetFile", "openai-gpt-3:MessageAnAssistant"]},
-                    {"label": "Ruta B: Excel XLSX (Tabular Parser)", "filter": "lower(3.extension) == 'xlsx'", "modules": ["http:ActionGetFile", "openai-gpt-3:CreateCompletion"]},
-                    {"label": "Ruta C: Imagen JPG (OpenAI Vision)", "filter": "lower(3.extension) in ['jpg','jpeg']", "modules": ["http:ActionGetFile", "openai-gpt-3:AnalyzeImage"]}
-                ]
-            },
-            {"id": 12, "module": "builtin:BasicAggregator", "version": 1, "mapper": {"feeder": 3}, "metadata": {"Label": "12. Array Aggregator"}},
-            {"id": 13, "module": "http:ActionSendData", "version": 3, "mapper": {"url": "{{1.callback_url}}", "method": "post"}, "metadata": {"Label": "13. Callback a Portal Web"}}
-        ]
+        ],
     }

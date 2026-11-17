@@ -8,6 +8,21 @@ def analyze_and_suggest(
     nombre_cliente: str = "Estimado(a) Cliente",
     empresa: str = ""
 ) -> Dict[str, Any]:
+    """Clasificación y respuesta del ticket: LLM gratuito (cadena LangChain) con Plan B de reglas locales."""
+    from app import llm_chains
+    return llm_chains.clasificar_ticket(
+        titulo, descripcion, [s.get("titulo", "") for s in soluciones_kb],
+        regla_local=lambda: analyze_and_suggest_rules(titulo, descripcion, soluciones_kb, nombre_cliente, empresa),
+    )
+
+
+def analyze_and_suggest_rules(
+    titulo: str,
+    descripcion: str,
+    soluciones_kb: List[Dict[str, Any]],
+    nombre_cliente: str = "Estimado(a) Cliente",
+    empresa: str = ""
+) -> Dict[str, Any]:
     """
     Motor de Respuesta Inteligente centrada en el Cliente (Customer-Centric AI Engine).
     Analiza intención, urgencia, coincidencias en Base de Conocimiento y redacta una
@@ -302,7 +317,7 @@ def extract_deep_file_text(filename: str, ext: str, raw_bytes: bytes) -> Dict[st
         return result
 
     # 4. IMÁGENES (.JPG / .JPEG): Resolución JPEG o texto embebido
-    if ext in ("jpg", "jpeg"):
+    if ext in ("jpg", "jpeg", "png", "webp"):
         width, height = 0, 0
         try:
             # Leer dimensiones reales de cabecera JPEG SOF0/SOF2
@@ -363,7 +378,7 @@ def build_human_file_summary(f: Dict[str, Any]) -> str:
         muestra = " — ".join(key_pts[:3]) if key_pts else (deep_text[:240] if deep_text else "Informe Word estructurado sin errores de formato.")
         return f"📘 **{name}** (Documento Word .DOCX, {size_kb} KB — Prioridad {prio}):\n   • **Puntos principales:** {muestra}"
 
-    if ext in ("jpg", "jpeg"):
+    if ext in ("jpg", "jpeg", "png", "webp"):
         res = metrics.get("resolucion", "")
         muestra = deep_text[:200] if deep_text else f"Imagen o captura de soporte ({res or str(size_kb) + ' KB'}) analizada por visión."
         return f"🖼️ **{name}** (Imagen .JPG, {size_kb} KB — Prioridad {prio}):\n   • **Detalle visual:** {muestra}"
@@ -531,7 +546,7 @@ def extract_deep_file_text(filename: str, ext: str, raw_bytes: bytes) -> Dict[st
         return result
 
     # 4. IMÁGENES (.JPG / .JPEG): Resolución JPEG o texto embebido
-    if ext in ("jpg", "jpeg"):
+    if ext in ("jpg", "jpeg", "png", "webp"):
         width, height = 0, 0
         try:
             # Leer dimensiones reales de cabecera JPEG SOF0/SOF2
@@ -592,7 +607,7 @@ def build_human_file_summary(f: Dict[str, Any]) -> str:
         muestra = " — ".join(key_pts[:3]) if key_pts else (deep_text[:240] if deep_text else "Informe Word estructurado sin errores de formato.")
         return f"📘 **{name}** (Documento Word .DOCX, {size_kb} KB — Prioridad {prio}):\n   • **Puntos principales:** {muestra}"
 
-    if ext in ("jpg", "jpeg"):
+    if ext in ("jpg", "jpeg", "png", "webp"):
         res = metrics.get("resolucion", "")
         muestra = deep_text[:200] if deep_text else f"Imagen o captura de soporte ({res or str(size_kb) + ' KB'}) analizada por visión."
         return f"🖼️ **{name}** (Imagen .JPG, {size_kb} KB — Prioridad {prio}):\n   • **Detalle visual:** {muestra}"
@@ -602,72 +617,127 @@ def build_human_file_summary(f: Dict[str, Any]) -> str:
 
 def answer_file_chatbot_question(pregunta: str, files_data: List[Dict[str, Any]], ticket_context: Dict[str, Any] = None) -> str:
     """
-    Chatbot Inteligente de Consulta y Resumen Documental.
-    Integra primero inferencia contextual directa con Google Gemini (nivel gratuito),
-    y conmuta transparentemente a un motor semántico local cuando la API no esté configurada o falle.
+    Chatbot Empresarial e Inteligente de Gestión, Soporte y Análisis Documental 24/7.
+    - Responde consultas conversacionales generales (saludos, asistencia, cómo radicar, dudas del sistema).
+    - Asiste en el módulo de Visión Artificial e IA Multimodal (facturas, cédulas, recibos, cámara móvil, umbral 80%).
+    - Consulta estados de tickets en tiempo real si se proporciona el contexto o código de seguimiento.
+    - Analiza y resume profundamente lotes de archivos (.pdf, .xlsx, .docx, .jpg) con Google Gemini o motor semántico local.
     """
     q = (pregunta or "").strip()
     q_low = q.lower()
-    total = len(files_data)
+    total = len(files_data) if files_data else 0
 
-    if total == 0:
-        return (
-            "🤖 **Aún no hay archivos cargados para analizar.**\n\n"
-            "Por favor sube tus archivos (`.pdf`, `.xlsx`, `.docx` o `.jpg`) en el área de carga "
-            "o pulsa el botón **«Generar Lote Demo de 30 Archivos»** para que pueda leer su contenido y responderte."
-        )
-
-    # 1. INTENTO DE RESPUESTA MEDIANTE IA GENERATIVA (GEMINI) CON CONTEXTO COMPLETO
+    # 1. INTENTO CON INTELIGENCIA ARTIFICIAL GENERATIVA (GOOGLE GEMINI 2.5 FLASH)
     try:
         from app import ai_provider
         if ai_provider.is_available():
             context_blocks = []
-            for idx, f in enumerate(files_data[:30], start=1):
-                txt_part = (f.get("deep_text") or f.get("summary") or "")[:1200]
-                context_blocks.append(
-                    f"--- ARCHIVO #{idx} ---\n"
-                    f"Nombre: {f.get('filename')} (Formato: {f.get('extension')}, Tamaño: {f.get('size_kb')} KB)\n"
-                    f"Prioridad preliminar: {f.get('priority', 'Media')}\n"
-                    f"Contenido extraído / Tabla: {txt_part}\n"
-                )
-            archivos_texto = "\n".join(context_blocks)
-            t_info = f"Ticket actual: {ticket_context.get('codigo')} - {ticket_context.get('titulo')}" if ticket_context else "Lote en análisis"
+            if total > 0:
+                for idx, f in enumerate(files_data[:30], start=1):
+                    txt_part = (f.get("deep_text") or f.get("summary") or "")[:1200]
+                    context_blocks.append(
+                        f"--- ARCHIVO #{idx} ---\n"
+                        f"Nombre: {f.get('filename')} (Formato: {f.get('extension')}, Tamaño: {f.get('size_kb')} KB)\n"
+                        f"Prioridad preliminar: {f.get('priority', 'Media')}\n"
+                        f"Contenido extraído / Tabla: {txt_part}\n"
+                    )
+                archivos_texto = "\n".join(context_blocks)
+            else:
+                archivos_texto = "No hay archivos adjuntos en esta consulta específica."
 
-            prompt_gemini = f"""Eres el Asistente Experto en Gestión y Análisis Documental del sistema.
-El usuario tiene cargados {total} archivo(s) de soporte ({t_info}).
-Analiza detenidamente la siguiente información extraída de los documentos:
+            t_info = ""
+            if ticket_context:
+                t_info = f"Contexto de la solicitud actual: Código {ticket_context.get('codigo')}, Título: '{ticket_context.get('titulo')}', Estado: {ticket_context.get('estado', 'En gestión')}, Prioridad: {ticket_context.get('prioridad', 'Normal')}."
 
+            prompt_gemini = f"""Eres el Asistente Virtual Inteligente 24/7 del Sistema Inteligente de Gestión y Análisis Documental (Tercer Corte DAE).
+Eres profesional, empático, claro, conciso y muy competente.
+
+{t_info}
+
+Archivos del expediente disponibles ({total} archivo/s):
 {archivos_texto}
 
 Pregunta del usuario: «{q}»
 
-Instrucciones para tu respuesta:
-1. Responde de forma muy clara, concisa, profesional y estructurada con viñetas y texto resaltado en negritas.
-2. Si te piden un resumen, extrae los datos clave reales (proveedores, importes de facturas, totales de tablas Excel, conclusiones de informes Word, alertas de capturas).
-3. Si preguntan por un archivo específico, enfócate exactamente en ese documento.
-4. Responde en español y no inventes datos que no estén presentes en el contexto anterior."""
+Instrucciones de respuesta:
+1. Si el usuario te saluda o hace una pregunta general sobre el sistema, respóndele cordialmente explicando cómo puedes asistirlo (radicar solicitudes, escanear documentos con cámara en /vision, auditar facturas, consultar tickets o resumir expedientes).
+2. Si te preguntan sobre el módulo de Visión Artificial, explica que admite fotos desde la cámara del celular, extrae emisor, NIT, fecha y monto, y aplica una regla de validación humana (Human-in-the-Loop) si la confianza de la IA es inferior al 80%.
+3. Si el usuario pregunta por archivos o pide resúmenes y hay documentos cargados, extrae los datos reales más relevantes (proveedores, importes, cifras de Excel, advertencias).
+4. Si no hay archivos y el usuario pide un resumen de documentos, indícale amablemente cómo subirlos o generar un lote de demostración.
+5. Utiliza formato Markdown profesional: negritas, viñetas y emojis pertinentes. Responde siempre en español fluido y educado."""
 
             res_ia = ai_provider.generate(
                 prompt=prompt_gemini,
-                system="Eres un analista documental senior de clase mundial que entrega respuestas directas, legibles y ejecutivas."
+                system="Eres el Asistente Ejecutivo del Sistema Inteligente de Gestión Documental. Respuestas de alta calidad empresarial, sin rodeos innecesarios."
             )
             if res_ia.ok and res_ia.text:
                 return res_ia.text.strip()
-    except Exception as e:
-        # Fallback silencioso al motor heurístico local
+    except Exception:
+        # Fallback silencioso al motor semántico local
         pass
 
-    q = (pregunta or "").strip()
-    q_low = q.lower()
-    total = len(files_data)
-
-    if total == 0:
+    # 2. MOTOR SEMÁNTICO LOCAL HEURÍSTICO (PLAN B - OFFLINE / RESILIENTE)
+    
+    # 2.1 SALUDOS Y ASISTENCIA GENERAL
+    if any(k in q_low for k in ["hola", "buenos dias", "buenas tardes", "buenas noches", "saludos", "que tal", "quien eres", "cómo estás", "como estas"]):
         return (
-            "🤖 **Aún no hay archivos cargados para analizar.**\n\n"
-            "Por favor sube tus archivos (`.pdf`, `.xlsx`, `.docx` o `.jpg`) en el área de carga "
-            "o pulsa el botón **«Generar Lote Demo de 30 Archivos»** para que pueda leer su contenido y resumírtelos."
+            "👋 **¡Hola! Bienvenido al Sistema Inteligente de Gestión y Análisis Documental 24/7.**\n\n"
+            "Soy tu asistente virtual integrado con Inteligencia Artificial. Estoy a tu disposición para:\n"
+            "• 📄 **Radicar Solicitudes:** Diagnóstico automático de categoría, prioridad y SLA.\n"
+            "• 📷 **Visión por Computador:** Escanear fotos de facturas, recibos y cédulas tomadas con tu celular en `/vision`.\n"
+            "• 📊 **Análisis Documental:** Leer, resumir y extraer cifras de lotes de archivos (`.pdf`, `.xlsx`, `.docx`, `.jpg`).\n"
+            "• 🔎 **Seguimiento:** Consultar el estado y avance de tus radicaciones en tiempo real.\n\n"
+            "¿En qué puedo orientarte hoy? Puedes formularme cualquier pregunta o pedirme un resumen de tus documentos."
         )
 
+    # 2.2 PREGUNTAS SOBRE VISIÓN POR COMPUTADOR Y CÁMARA MÓVIL
+    if any(k in q_low for k in ["vision", "visión", "camara", "cámara", "escanear", "escaneo", "factura", "recibo", "cedula", "cédula", "multimodal", "humano", "human", "80%", "umbral", "confianza"]):
+        return (
+            "📷 **Módulo de Visión Artificial e IA Multimodal (Componente 2):**\n\n"
+            "Nuestro sistema procesa imágenes y documentos escaneados mediante las siguientes directrices empresariales:\n"
+            "1. **Captura Móvil y Carga Flexible:** Puedes tomar una foto directamente con la cámara de tu teléfono móvil o subir archivos JPG, PNG y PDF hasta 10 MB desde el portal `/vision`.\n"
+            "2. **Extracción Estructurada:** La IA identifica automáticamente la razón social del emisor, NIT, fecha de emisión, total monetario, divisa y calcula un score de confianza (0% al 100%).\n"
+            "3. **Protocolo Human-in-the-Loop (Umbral del 80%):**\n"
+            "   • Si la confianza es **mayor o igual al 80%**, el registro se clasifica con alta fiabilidad.\n"
+            "   • Si la confianza es **menor al 80%** (por ejemplo, por mala iluminación o desgaste del papel térmico), el sistema activa el estado **«Pendiente de Revisión»** y habilita un panel para que un agente humano confirme o edite los valores antes de impactar las bases de datos contables.\n"
+            "4. **Tolerancia a Fallos:** Si no hay conexión externa a Gemini, se activa automáticamente el motor sintáctico local (Plan B)."
+        )
+
+    # 2.3 CÓMO RADICAR Y TIEMPOS DE RESPUESTA (SLA)
+    if any(k in q_low for k in ["radicar", "crear ticket", "solicitud", "sla", "prioridad", "tiempo de respuesta", "como funciona"]):
+        return (
+            "⚡ **Radicación Inteligente y Nivel de Servicio (SLA):**\n\n"
+            "Para radicar una nueva solicitud en el portal:\n"
+            "1. Ve al menú **«Crear Solicitud»** e ingresa tus datos de contacto y la descripción de tu requerimiento.\n"
+            "2. Autoriza el tratamiento de datos personales conforme a la **Ley 1581 de 2012 (Habeas Data)**.\n"
+            "3. Opcionalmente adjunta archivos de soporte (puedes subir lotes de hasta 30 documentos multimodales).\n"
+            "4. **Automatización Propia en Código (Componente 1):** Nuestro motor en segundo plano (`AutomationEngine`) clasifica la prioridad:\n"
+            "   • 🔴 **Alta (Crítica):** SLA de atención en menos de 2 a 4 horas hábiles.\n"
+            "   • 🟡 **Media (Estándar):** SLA de resolución de 12 a 24 horas hábiles.\n"
+            "   • 🟢 **Baja (Informativa):** SLA de respuesta en 24 a 48 horas hábiles.\n"
+            "Al finalizar, recibirás un **Código de Seguimiento** único para consultar el estado en cualquier momento."
+        )
+
+    # 2.4 PROTECCIÓN DE DATOS Y HABEAS DATA
+    if any(k in q_low for k in ["datos", "habeas", "1581", "privacidad", "seguridad", "contraseña", "password"]):
+        return (
+            "🛡️ **Seguridad Criptográfica y Protección de Datos Personales:**\n\n"
+            "• **Ley Estatutaria 1581 de 2012:** El sistema exige la autorización previa, expresa e informada del titular antes de recolectar cualquier dato personal en los formularios.\n"
+            "• **Criptografía OWASP Top 10:** Las contraseñas de los usuarios agentes están protegidas con el algoritmo de derivación de claves **PBKDF2-SHA256 con 100.000 iteraciones** y sal criptográfica aleatoria de 16 bytes.\n"
+            "• **Sesiones Blindadas:** Se emplean cookies firmadas criptográficamente con directivas `HttpOnly` y `SameSite=Lax` para mitigar ataques de secuestro de sesión (XSS y CSRF)."
+        )
+
+    # 2.5 CONSULTA SOBRE ARCHIVOS CUANDO NO HAY NINGUNO
+    if total == 0:
+        return (
+            "🤖 **No se han cargado archivos en este expediente o consulta.**\n\n"
+            "Para que pueda analizar en profundidad tus documentos:\n"
+            "• Arrastra tus archivos (`.pdf`, `.xlsx`, `.docx`, `.jpg`) en el área de carga superior, o\n"
+            "• Si deseas ver una demostración inmediata, pulsa el botón **«Generar Lote Demo de 30 Archivos»**.\n\n"
+            "Si tienes una consulta general sobre el funcionamiento del sistema, ¡pregunta con confianza!"
+        )
+
+    # 2.6 RESUMEN Y ANÁLISIS DE ARCHIVOS CARGADOS (CUANDO SÍ HAY ARCHIVOS)
     counts = {"pdf": 0, "xlsx": 0, "docx": 0, "jpg": 0}
     total_kb = 0.0
     high_prio = []
@@ -675,8 +745,10 @@ Instrucciones para tu respuesta:
 
     for f in files_data:
         ext = (f.get("extension") or "").lower().lstrip(".")
-        if ext == "jpeg":
+        if ext in ("jpeg", "png", "webp"):
             ext = "jpg"
+        elif ext in ("txt", "csv"):
+            ext = "docx" if ext == "txt" else "xlsx"
         if ext in counts:
             counts[ext] += 1
             by_ext[ext].append(f)
@@ -684,7 +756,7 @@ Instrucciones para tu respuesta:
         if (f.get("priority") or "").lower() == "alta":
             high_prio.append(f)
 
-    # CASO 1: El usuario menciona el nombre o número de un archivo específico (ej. "doc_1", "factura", "archivo 3")
+    # Archivo específico mencionado
     matched = []
     for idx, f in enumerate(files_data, start=1):
         fname = (f.get("filename") or "").lower()
@@ -700,8 +772,8 @@ Instrucciones para tu respuesta:
             f"{detalles}"
         )
 
-    # CASO 2: El usuario pide RESUMIR TODO, DE QUÉ TRATAN, QUÉ CONTIENEN, QUÉ DICE EL LOTE, EXPLICAR o SÍNTESIS
-    if any(k in q_low for k in ["resum", " síntesis", "sintesis", "de que trata", "de qué trata", "que dice", "qué dice", "que contienen", "qué contienen", "explica", "analiza todo", "general", "todo el lote", "todos los archivos"]):
+    # Resumen general del lote
+    if any(k in q_low for k in ["resum", "síntesis", "sintesis", "de que trata", "de qué trata", "que dice", "qué dice", "que contienen", "qué contienen", "explica", "analiza todo", "general", "todo el lote", "todos los archivos"]):
         bloques = []
         if by_ext["pdf"]:
             ej_pdf = "\n".join(["   " + build_human_file_summary(x) for x in by_ext["pdf"][:3]])
@@ -724,96 +796,43 @@ Instrucciones para tu respuesta:
         conclusion = (
             f"⚠️ **Atención:** Se detectaron **{len(high_prio)} archivo(s) con Prioridad Alta** que requieren revisión inmediata."
             if high_prio else
-            "✅ **Conclusión:** Todos los archivos fueron leídos correctamente y no presentan bloqueos críticos."
+            "✅ **Conclusión:** Todos los archivos fueron analizados correctamente y no presentan bloqueos críticos."
         )
         return (
-            f"📋 **RESUMEN EJECUTIVO CLARO DE TUS {total} ARCHIVOS ({round(total_kb, 1)} KB):**\n\n"
+            f"📋 **RESUMEN EJECUTIVO DE TUS {total} ARCHIVOS ({round(total_kb, 1)} KB):**\n\n"
             f"{cuerpo}\n\n"
             f"{conclusion}"
         )
 
-    # CASO 3: El usuario pregunta específicamente por PDF o Word
+    # Preguntas por tipo de documento
     if any(k in q_low for k in ["pdf", "word", "docx", "contrato", "documento", "texto"]):
         docs = by_ext["pdf"] + by_ext["docx"]
         if not docs:
-            return f"📑 En este momento no tienes archivos `.pdf` ni `.docx` cargados (tienes {counts['xlsx']} Excel y {counts['jpg']} imágenes)."
+            return f"📑 En este momento no tienes archivos `.pdf` ni `.docx` cargados ({counts['xlsx']} Excel y {counts['jpg']} imágenes disponibles)."
         listado = "\n\n".join([build_human_file_summary(d) for d in docs[:6]])
-        extra = f"\n\n*(Mostrando los primeros 6 de {len(docs)} documentos de texto. Pregúntame por el nombre de uno específico si deseas ver más detalle)*." if len(docs) > 6 else ""
-        return (
-            f"📑 **Resumen claro de tus Documentos PDF y Word ({len(by_ext['pdf'])} PDF, {len(by_ext['docx'])} DOCX):**\n\n"
-            f"{listado}{extra}"
-        )
+        return f"📑 **Resumen de Documentos PDF y Word ({len(by_ext['pdf'])} PDF, {len(by_ext['docx'])} DOCX):**\n\n{listado}"
 
-    # CASO 4: El usuario pregunta por Excel / Tablas / Números / Montos
     if any(k in q_low for k in ["excel", "xlsx", "tabla", "monto", "valor", "cifra", "calculo", "cálculo", "hoja", "contable"]):
         xls = by_ext["xlsx"]
         if not xls:
             return f"📊 No hay hojas de cálculo `.xlsx` en este lote ({counts['pdf']} PDF, {counts['docx']} Word, {counts['jpg']} JPG)."
         listado = "\n\n".join([build_human_file_summary(x) for x in xls[:6]])
-        extra = f"\n\n*(+ {len(xls) - 6} archivo(s) Excel adicionales en el lote)*." if len(xls) > 6 else ""
-        return (
-            f"📈 **Resumen de tus Hojas de Cálculo Excel ({len(xls)} archivo(s) .XLSX):**\n\n"
-            f"{listado}{extra}"
-        )
+        return f"📈 **Resumen de Hojas de Cálculo Excel ({len(xls)} archivo(s) .XLSX):**\n\n{listado}"
 
-    # CASO 5: El usuario pregunta por Imágenes / Capturas / JPG
     if any(k in q_low for k in ["imagen", "imagenes", "imágenes", "jpg", "jpeg", "foto", "captura"]):
         imgs = by_ext["jpg"]
         if not imgs:
-            return f"🖼️ No hay imágenes `.jpg` en este lote ({counts['pdf']} PDF, {counts['xlsx']} Excel, {counts['docx']} Word)."
-        listado = "\n\n".join([build_human_file_summary(i) for i in imgs[:6]])
-        return f"🖼️ **Resumen de Evidencias Visuales ({len(imgs)} imagen/es .JPG):**\n\n{listado}"
+            return f"🖼️ No hay imágenes `.jpg` o capturas cargadas en este lote."
+        listado = "\n\n".join([build_human_file_summary(x) for x in imgs[:5]])
+        return f"🖼️ **Evidencias Visuales e Imágenes ({len(imgs)} archivo(s)):**\n\n{listado}"
 
-    # CASO 6: El usuario pregunta cuántos archivos hay, tamaños o formatos
-    if any(k in q_low for k in ["cuántos", "cuantos", "cantidad", "formato", "peso", "tamaño", "inventario"]):
-        return (
-            f"📊 **Inventario Claro de tu Lote ({total} archivo(s) — {round(total_kb, 1)} KB totales):**\n\n"
-            f"• 📕 **Documentos PDF (.pdf):** {counts['pdf']} archivo(s)\n"
-            f"• 📊 **Hojas de Cálculo Excel (.xlsx):** {counts['xlsx']} archivo(s)\n"
-            f"• 📘 **Documentos Word (.docx):** {counts['docx']} archivo(s)\n"
-            f"• 🖼️ **Imágenes / Capturas (.jpg):** {counts['jpg']} archivo(s)\n"
-            f"• 🚨 **Archivos con Prioridad Alta:** {len(high_prio)} archivo(s)\n\n"
-            f"💡 *Escríbeme «Resúmeme todos los archivos» o el nombre de un documento para ver su contenido exacto.*"
-        )
-
-    # CASO 7: El usuario pregunta por prioridad alta, urgencias, errores o problemas
-    if any(k in q_low for k in ["prioridad", "alta", "urgente", "error", "problema", "alerta", "crítico", "critico"]):
-        if not high_prio:
-            return (
-                f"✅ **Revisión de Alertas y Prioridades ({total} archivos):**\n\n"
-                f"Ninguno de los archivos presenta fallas críticas o alertas de prioridad Alta. "
-                f"Todos se encuentran validados y listos para gestión normal."
-            )
-        listado = "\n\n".join([build_human_file_summary(h) + f"\n   • **Acción sugerida:** {h.get('recommendation')}" for h in high_prio[:6]])
-        return (
-            f"🚨 **Se detectaron {len(high_prio)} archivo(s) con Prioridad Alta que requieren atención inmediata:**\n\n"
-            f"{listado}"
-        )
-
-    # CASO POR DEFECTO: Búsqueda por palabras clave dentro del contenido real de los archivos + Resumen ejecutivo
-    keywords = [w.strip(".,;:¿?¡!()") for w in q_low.split() if len(w.strip(".,;:¿?¡!()")) > 3]
-    content_matches = []
-    for f in files_data:
-        searchable = f"{f.get('filename', '')} {f.get('deep_text', '')} {f.get('summary', '')} {f.get('recommendation', '')}".lower()
-        hits = sum(1 for kw in keywords if kw in searchable)
-        if hits > 0:
-            content_matches.append((hits, f))
-    content_matches.sort(key=lambda x: x[0], reverse=True)
-
-    if content_matches:
-        mejores = [x[1] for x in content_matches[:4]]
-        listado = "\n\n".join([build_human_file_summary(m) for m in mejores])
-        return (
-            f"💡 **Esto es lo que encontré en tus archivos sobre «{q}»:**\n\n"
-            f"{listado}\n\n"
-            f"*(Si deseas un resumen global de todo el lote, escribe «Resúmeme todos los archivos»)*."
-        )
-
-    # Si no hubo match específico, entregar el resumen ejecutivo directo de los primeros archivos
-    listado_general = "\n\n".join([build_human_file_summary(f) for f in files_data[:4]])
-    extra = f"\n\n*(+ {total - 4} archivo(s) adicionales cargados en el lote)*." if total > 4 else ""
+    # Respuesta predeterminada enriquecida
     return (
-        f"📋 **Resumen de tus {total} archivo(s) respecto a tu consulta «{q}»:**\n\n"
-        f"{listado_general}{extra}\n\n"
-        f"• **Totales por formato:** {counts['pdf']} PDF | {counts['xlsx']} Excel | {counts['docx']} Word | {counts['jpg']} JPG."
+        f"💡 **Asistente Inteligente:** He recibido tu consulta «*{q}*».\n\n"
+        f"Tienes actualmente **{total} archivo(s)** disponibles en el expediente ({round(total_kb, 1)} KB totales).\n"
+        f"Puedes pedirme:\n"
+        f"• *«Resumir todos los archivos»*\n"
+        f"• *«¿Qué información tienen los Excel?»*\n"
+        f"• *«Explicar el documento PDF»*\n"
+        f"• *«¿Cuáles requieren atención urgente?»*"
     )

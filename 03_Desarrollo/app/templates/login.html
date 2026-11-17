@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Acceso del equipo{% endblock %}
+{% block content %}
+<div class="login-card fade-in" style="margin-top:2rem">
+  <div class="card">
+    <div class="eyebrow">Equipo de soporte</div>
+    <h1 style="font-size:1.8rem">Iniciar sesión</h1>
+    <p class="muted">Accede a la bandeja de tickets, la visión de documentos y el asistente.</p>
+    {% if error_login %}<div class="alert bad" role="alert" style="margin-bottom:1rem"><i class="bi bi-exclamation-octagon"></i><div>{{ error_login }}</div></div>{% endif %}
+    <form action="/login" method="post">
+      <input type="hidden" name="next" value="{{ next or '/agente/tickets' }}">
+      <div class="field"><label class="lbl" for="email">Correo corporativo</label>
+        <input id="email" type="email" name="email" required autocomplete="username" placeholder="nombre@empresa.com"></div>
+      <div class="field"><label class="lbl" for="pw">Contraseña</label>
+        <div class="row" style="flex-wrap:nowrap"><input id="pw" type="password" name="password" required autocomplete="current-password">
+        <button type="button" class="btn ghost icon-btn" id="showpw" aria-label="Mostrar contraseña" style="flex:none"><i class="bi bi-eye"></i></button></div></div>
+      <button class="btn lg block" type="submit"><i class="bi bi-box-arrow-in-right"></i> Entrar</button>
+    </form>
+    <div class="alert info" style="margin-top:1.1rem"><i class="bi bi-info-circle"></i><div class="small">Cuentas de demostración: <code>andres.gomez@empresa.com</code> (agente) y <code>miguel.rojas@empresa.com</code> (admin). Contraseña de las cuentas sembradas: <code>Password123*</code></div></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+document.getElementById('showpw').onclick = function () { const i = document.getElementById('pw'); i.type = i.type === 'password' ? 'text' : 'password'; };
+</script>{% endblock %}

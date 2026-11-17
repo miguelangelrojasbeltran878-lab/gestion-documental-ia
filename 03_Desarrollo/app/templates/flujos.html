@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Automatización{% endblock %}
+{% block crumb %}Operación / Automatización{% endblock %}
+{% block content %}
+{% set es_admin = usuario_actual and usuario_actual.rol == 'Administrador' %}
+<div class="page-head">
+  <div><div class="eyebrow">Motor propio · sin servicios de pago</div><h1>Flujos automáticos</h1>
+  <p>Cada flujo tiene un disparador, pasos definidos y un registro de ejecución. Si la IA no responde, entra el Plan B local.</p></div>
+  <div class="badge {{ 'ok' if ia.available else 'warn' }}"><i class="bi bi-cpu"></i> IA: {{ ia.provider }}{{ '' if ia.available else ' (Plan B)' }}</div>
+</div>
+
+<div class="grid g4" style="margin-bottom:1.4rem">
+  <div class="kpi"><div class="v">{{ flujos | length }}</div><div class="l">Flujos activos</div></div>
+  <div class="kpi"><div class="v">{{ flujos | sum(attribute='ejecuciones') }}</div><div class="l">Ejecuciones</div></div>
+  <div class="kpi"><div class="v">{{ lotes | length }}</div><div class="l">Lotes recibidos</div></div>
+  <div class="kpi"><div class="v">{{ total_archivos_procesados }}</div><div class="l">Archivos procesados</div></div>
+</div>
+
+<div class="grid g2" style="margin-bottom:2rem">
+{% for f in flujos %}
+  <div class="card stack">
+    <div class="card-head"><div><div class="eyebrow">{{ f.tipo }}</div><h3>{{ f.nombre }}</h3></div>
+      {% if f.ultimo_estado %}<span class="badge {{ {'EXITOSO':'ok','PLAN_B':'warn','FALLIDO':'bad'}.get(f.ultimo_estado,'') }}">{{ f.ultimo_estado.replace('_',' ') }}</span>{% else %}<span class="badge">Sin ejecuciones</span>{% endif %}</div>
+    <dl class="kv">
+      <dt>Disparador</dt><dd>{{ f.disparador }}{% if f.cron %} <span class="mono tiny muted">({{ f.cron }})</span>{% endif %}</dd>
+      <dt>Resultado</dt><dd>{{ f.resultado }}</dd>
+      <dt>Servicios</dt><dd>{{ f.servicios | join(', ') if f.servicios is not string else f.servicios }}</dd>
+    </dl>
+    <ol class="small ink2" style="margin:0;padding-left:1.2rem">{% for p in f.pasos %}<li>{{ p }}</li>{% endfor %}</ol>
+    <div class="row between">
+      <span class="small muted">{{ f.ejecuciones }} ejecución(es){% if f.tasa_exito is not none %} · {{ f.tasa_exito }}% éxito{% endif %}{% if f.ultima_ejecucion %} · {{ f.ultima_ejecucion }}{% endif %}</span>
+      {% if f.ejecutable_manual and es_admin %}<button class="btn sm" data-run="{{ f.id }}"><i class="bi bi-play-fill"></i> Ejecutar ahora</button>{% endif %}
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+<div class="card-head"><h2>Últimas ejecuciones</h2></div>
+{% if ejecuciones %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Código</th><th>Flujo</th><th>Entrada</th><th>Estado</th><th>IA</th><th>Intentos</th><th>Duración</th><th>Inicio</th></tr></thead>
+  <tbody>{% for e in ejecuciones %}<tr>
+    <td class="mono small">{{ e.codigo_ejecucion }}</td><td>{{ e.flujo }}</td><td class="small muted" style="max-width:280px">{{ (e.entrada_resumen or '')[:90] }}</td>
+    <td><span class="badge {{ {'EXITOSO':'ok','PLAN_B':'warn','FALLIDO':'bad'}.get(e.estado,'info') }}" {% if e.error %}title="{{ e.error }}"{% endif %}>{{ e.estado.replace('_',' ') }}</span></td>
+    <td class="mono small">{{ e.proveedor_ia or 'local' }}</td><td>{{ e.intentos }}</td><td>{{ e.duracion_ms }} ms</td>
+    <td class="muted small">{{ e.fecha_inicio.strftime('%d/%m %H:%M:%S') if e.fecha_inicio }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="card empty"><i class="bi bi-activity"></i>Aún no hay ejecuciones registradas.</div>{% endif %}
+
+<div class="card-head" style="margin-top:2rem"><h2>Lotes de archivos</h2></div>
+{% if lotes %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Lote</th><th>Estado</th><th>Archivos</th><th>Creado</th></tr></thead>
+  <tbody>{% for l in lotes[:20] %}<tr><td class="mono">{{ l.batch_code }}</td><td><span class="badge {{ 'ok' if l.estado_make in ['COMPLETADO','PROCESADO'] else 'info' }}">{{ l.estado_make }}</span></td><td>{{ l.archivos_procesados }}/{{ l.total_archivos }}</td><td class="muted small">{{ l.fecha_creacion.strftime('%d/%m/%Y %H:%M') if l.fecha_creacion }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="card empty"><i class="bi bi-folder2-open"></i>Sin lotes todavía. <a href="/crear-solicitud">Crea una solicitud con archivos</a>.</div>{% endif %}
+{% endblock %}
+{% block scripts %}<script>
+document.querySelectorAll('[data-run]').forEach((b) => (b.onclick = async () => {
+  b.disabled = true; const t = b.innerHTML; b.innerHTML = '<span class="spin"></span> Ejecutando…';
+  try { const r = await UI.api('/api/v1/automatizaciones/flujos/' + b.dataset.run + '/ejecutar', { method: 'POST' }); UI.toast('Flujo ejecutado: ' + (r.estado || 'ok'), 'ok'); setTimeout(() => location.reload(), 800); }
+  catch (e) { UI.toast(e.message, 'bad'); b.disabled = false; b.innerHTML = t; }
+}));
+</script>{% endblock %}

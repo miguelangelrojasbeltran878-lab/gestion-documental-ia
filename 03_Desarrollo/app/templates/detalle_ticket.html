@@ -1,329 +1,109 @@
-<!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-950 text-slate-100">
-<head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Detalle del Ticket {{ ticket.codigo_seguimiento }} - EduSupport AI</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <style>body { font-family: 'Inter', sans-serif; }</style>
-</head>
-<body class="min-h-full flex flex-col justify-between">
-    <!-- Navbar Header -->
-    <header class="border-b border-slate-800 bg-slate-900 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <a href="/agente/tickets" class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center border border-blue-500/30">
-                        <span class="material-symbols-outlined text-xl">smart_toy</span>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-white text-sm tracking-tight">EduSupport AI</h1>
-                        <p class="text-[10px] text-blue-400 font-semibold uppercase">Atención Asistida por IA + Make</p>
-                    </div>
-                </a>
-                <nav class="hidden md:flex items-center gap-1 text-xs font-semibold">
-                    <a href="/agente/tickets" class="px-3 py-2 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30">Tickets</a>
-                    <a href="/admin/dashboard" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">Dashboard</a>
-                    <a href="/admin/reportes" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">Reportes</a>
-                </nav>
-            </div>
-            <div class="flex items-center gap-3">
-                <a href="/agente/tickets" class="text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 flex items-center gap-1 transition">
-                    <span class="material-symbols-outlined text-sm">arrow_back</span> Volver a la Bandeja
-                </a>
-            </div>
+{% extends "base.html" %}
+{% block title %}{{ ticket.codigo_seguimiento }}{% endblock %}
+{% block crumb %}<a href="/agente/tickets">Bandeja</a> / {{ ticket.codigo_seguimiento }}{% endblock %}
+{% block content %}
+{% set prio = {'Alta': 'bad', 'Media': 'warn', 'Baja': 'ok'}.get(ticket.prioridad, '') %}
+<div class="page-head">
+  <div><div class="eyebrow mono">{{ ticket.codigo_seguimiento }}</div><h1>{{ ticket.titulo }}</h1>
+    <div class="row"><span class="badge {{ {'Abierto':'info','En Proceso':'warn','Resuelto':'ok'}.get(ticket.estado,'') }}">{{ ticket.estado }}</span><span class="badge {{ prio }}">Prioridad {{ ticket.prioridad }}</span><span class="badge brand">{{ ticket.categoria_preliminar }}</span><span class="muted small">{{ ticket.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</span></div></div>
+  <a class="btn ghost" href="/agente/tickets"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+<div class="split">
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h3>Solicitud del cliente</h3></div>
+      <p style="white-space:pre-line" class="ink2">{{ ticket.descripcion }}</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3><i class="bi bi-chat-dots"></i> Conversación ({{ ticket.mensajes | length }})</h3></div>
+      {% if ticket.mensajes %}<div class="thread">
+        {% for m in ticket.mensajes %}
+        <div class="bubble {{ 'agent' if m.remitente_tipo == 'AGENTE' else ('' if m.remitente_tipo == 'CLIENTE' else 'ia') }}">
+          <div class="meta"><b>{{ m.remitente_nombre }} <span class="badge" style="margin-left:.3rem">{{ m.remitente_tipo }}</span></b><span>{{ m.fecha_envio.strftime('%d/%m %H:%M') }}</span></div>
+          <div style="white-space:pre-line">{{ m.contenido }}</div></div>
+        {% endfor %}</div>
+      {% else %}<div class="empty"><i class="bi bi-chat"></i>Sin mensajes todavía.</div>{% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3><i class="bi bi-reply"></i> Respuesta oficial</h3>
+        {% if sugerencia %}<button class="btn sm ghost" type="button" id="useAi"><i class="bi bi-stars"></i> Usar sugerencia de la IA</button>{% endif %}</div>
+      <form action="/agente/tickets/{{ ticket.id_ticket }}/responder" method="post">
+        <div class="field"><textarea id="resp" name="respuesta_oficial" rows="8" required placeholder="Escribe la respuesta aprobada para el cliente…">{{ ticket.respuesta_oficial or '' }}</textarea></div>
+        <div class="row between">
+          <div class="row">
+            <select name="nuevo_estado" style="width:auto" aria-label="Nuevo estado">{% for e in ['En Proceso','Resuelto','Cerrado','Abierto'] %}<option {{ 'selected' if (ticket.estado == e) or (ticket.estado in ['Abierto'] and e == 'Resuelto') }}>{{ e }}</option>{% endfor %}</select>
+            <label class="check"><input type="checkbox" name="guardar_solucion" value="si"> Guardar en base de conocimiento</label>
+          </div>
+          <button class="btn" type="submit"><i class="bi bi-send"></i> Responder</button>
         </div>
-    </header>
+      </form>
+    </div>
+  </div>
 
-    <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Columna Izquierda: Detalle Ticket, Lotes Make y Respuesta -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Header Ticket -->
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
-                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4 mb-4">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-mono font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full">{{ ticket.codigo_seguimiento }}</span>
-                        <span class="text-xs font-semibold px-3 py-1 rounded-full
-                            {% if ticket.estado == 'Abierto' %} bg-amber-500/10 text-amber-400 border border-amber-500/20
-                            {% elif ticket.estado == 'En Proceso' %} bg-blue-500/10 text-blue-400 border border-blue-500/20
-                            {% else %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 {% endif %}">
-                            {{ ticket.estado }}
-                        </span>
-                    </div>
-                    <span class="text-xs text-slate-400">Radicado: {{ ticket.fecha_creacion.strftime('%Y-%m-%d %H:%M') }}</span>
-                </div>
+  <aside class="stack">
+    <div class="card">
+      <div class="card-head"><h3>Cliente</h3></div>
+      <dl class="kv">
+        <dt>Nombre</dt><dd>{{ ticket.cliente.nombre_completo if ticket.cliente else 'N/A' }}</dd>
+        <dt>Correo</dt><dd>{{ ticket.cliente.correo_electronico if ticket.cliente else 'N/A' }}</dd>
+        <dt>Teléfono</dt><dd>{{ (ticket.cliente.telefono if ticket.cliente else None) or 'No registrado' }}</dd>
+        <dt>Empresa</dt><dd>{{ (ticket.cliente.empresa_organizacion if ticket.cliente else None) or 'No registrada' }}</dd>
+      </dl>
+    </div>
 
-                <h2 class="text-xl font-bold text-white mb-2">{{ ticket.titulo }}</h2>
-                <div class="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-sm text-slate-300 whitespace-pre-line mb-4">{{ ticket.descripcion }}</div>
+    {% if sugerencia %}
+    <div class="card tint">
+      <div class="card-head"><h3><i class="bi bi-stars"></i> Análisis de la IA</h3><span class="badge brand">{{ (sugerencia.score_confianza * 100) | int }}%</span></div>
+      <div class="row" style="margin-bottom:.6rem"><span class="badge {{ {'Alta':'bad','Media':'warn','Baja':'ok'}.get(sugerencia.prioridad_sugerida,'') }}">Prioridad {{ sugerencia.prioridad_sugerida }}</span><span class="badge">{{ sugerencia.categoria_sugerida }}</span></div>
+      <div class="small ink2" id="aiText" style="white-space:pre-line;max-height:220px;overflow:auto">{{ sugerencia.respuesta_sugerida }}</div>
+    </div>
+    {% endif %}
 
-                <div class="flex items-center justify-between text-xs text-slate-400 pt-2">
-                    <span>Categoría: <strong class="text-white">{{ ticket.categoria_preliminar }}</strong></span>
-                    <span>Cliente: <strong class="text-white">{{ ticket.cliente.nombre_completo if ticket.cliente else 'Cliente' }}</strong></span>
-                </div>
-            </div>
+    {% if usuario_actual and usuario_actual.rol == 'Administrador' %}
+    <div class="card">
+      <div class="card-head"><h3>Asignación</h3></div>
+      <form action="/agente/tickets/{{ ticket.id_ticket }}/asignar" method="post" class="row" style="flex-wrap:nowrap">
+        <select name="id_agente" aria-label="Agente">{% for a in agentes %}<option value="{{ a.id_agente }}" {{ 'selected' if ticket.id_agente_asignado == a.id_agente }}>{{ a.nombre_completo }} ({{ a.rol }})</option>{% endfor %}</select>
+        <button class="btn" type="submit">Asignar</button>
+      </form>
+    </div>
+    {% endif %}
 
-            <!-- SECCIÓN DE LOTES DE ARCHIVOS PROCESADOS CON MAKE + IA -->
-            <div class="bg-slate-900 border border-purple-500/30 rounded-3xl p-6 shadow-2xl space-y-4">
-                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-purple-400 text-2xl">hub</span>
-                        <div>
-                            <h3 class="font-bold text-white text-base">Lotes de Archivos Procesados en Make + IA</h3>
-                            <p class="text-[11px] text-slate-400">Pipeline: Custom Webhook → Iterator → Router (.PDF, .XLSX, .DOCX, .JPG) → IA → Array Aggregator</p>
-                        </div>
-                    </div>
-                </div>
-
-                {% if ticket.lotes %}
-                    {% for lote in ticket.lotes %}
-                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
-                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2 text-xs">
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono font-bold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20">{{ lote.batch_code }}</span>
-                                <span class="text-slate-300 font-semibold">{{ lote.archivos_procesados }} / {{ lote.total_archivos }} archivos procesados</span>
-                            </div>
-                            <span class="px-2.5 py-0.5 rounded-full font-bold text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                {{ lote.estado_make }}
-                            </span>
-                        </div>
-
-                        <div class="max-h-72 overflow-y-auto divide-y divide-slate-800/60 text-xs">
-                            {% for arch in lote.archivos %}
-                            <div class="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                <div class="space-y-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-mono text-[10px] text-slate-500">{{ arch.file_code }}</span>
-                                        <span class="px-2 py-0.5 rounded font-bold uppercase text-[10px]
-                                            {% if arch.extension == 'pdf' %} bg-rose-500/10 text-rose-400 border border-rose-500/20
-                                            {% elif arch.extension == 'xlsx' %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
-                                            {% elif arch.extension == 'docx' %} bg-blue-500/10 text-blue-400 border border-blue-500/20
-                                            {% else %} bg-amber-500/10 text-amber-400 border border-amber-500/20 {% endif %}">
-                                            .{{ arch.extension }}
-                                        </span>
-                                        <span class="font-semibold text-white">{{ arch.nombre_original }}</span>
-                                        <span class="text-slate-500 text-[11px]">({{ (arch.tamano_bytes / 1024) | round(1) }} KB)</span>
-                                    </div>
-                                    <p class="text-slate-300 text-[11px] pl-1">{{ arch.resumen_extraido_ia }}</p>
-                                    <p class="text-blue-400 text-[11px] pl-1"><strong>Acción sugerida IA:</strong> {{ arch.recomendacion_ia }}</p>
-                                </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold
-                                        {% if arch.prioridad_detectada == 'Alta' %} bg-rose-500/10 text-rose-400 border border-rose-500/20
-                                        {% elif arch.prioridad_detectada == 'Media' %} bg-amber-500/10 text-amber-400 border border-amber-500/20
-                                        {% else %} bg-slate-800 text-slate-300 {% endif %}">
-                                        {{ arch.prioridad_detectada }}
-                                    </span>
-                                    <a href="/api/v1/lotes/temp-files/{{ lote.batch_code }}/{{ arch.file_code }}.{{ arch.extension }}" target="_blank" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition" title="Descargar archivo">
-                                        <span class="material-symbols-outlined text-sm">download</span>
-                                    </a>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-xs text-slate-400 italic">Este ticket aún no tiene lotes de archivos adjuntos.</p>
-                {% endif %}
-
-                <!-- Formulario rápido para adjuntar un nuevo lote de ~30 archivos desde la vista del agente -->
-                <form action="/agente/tickets/{{ ticket.id_ticket }}/subir-lote" method="POST" enctype="multipart/form-data" class="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                    <input type="file" name="archivos" multiple required accept=".pdf,.xlsx,.docx,.jpg,.jpeg" class="text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-600/20 file:text-purple-300 hover:file:bg-purple-600/30"/>
-                    <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg shadow-purple-600/20">
-                        <span class="material-symbols-outlined text-sm">cloud_upload</span> Procesar Nuevo Lote (~30 archivos)
-                    </button>
-                </form>
-            </div>
-
-            <!-- Sugerencia Inteligente IA (OpenAI / LangChain) -->
-            {% if sugerencia %}
-            <div class="bg-gradient-to-br from-blue-950/60 to-slate-900 border border-blue-500/40 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-                <div class="flex items-center justify-between mb-3 border-b border-blue-500/20 pb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-blue-400 text-2xl">auto_awesome</span>
-                        <h3 class="font-bold text-white text-base">Sugerencia Inteligente de Respuesta (IA)</h3>
-                    </div>
-                    <span class="text-xs font-bold text-blue-300 bg-blue-500/20 border border-blue-500/30 px-3 py-1 rounded-full">
-                        Confianza IA: {{ (sugerencia.score_confianza * 100) | int }}%
-                    </span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 text-xs mb-4 bg-slate-950/60 p-3 rounded-xl border border-blue-500/20">
-                    <div><span class="text-slate-400">Prioridad Asignada por IA:</span> <strong class="text-rose-400 font-bold ml-1">{{ sugerencia.prioridad_sugerida }}</strong></div>
-                    <div><span class="text-slate-400">Categoría Detectada:</span> <strong class="text-blue-300 ml-1">{{ sugerencia.categoria_sugerida }}</strong></div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Borrador Generado por LangChain / OpenAI + Síntesis Make:</label>
-                    <div id="ai-suggestion-text" class="p-4 bg-slate-950 border border-blue-500/30 rounded-2xl text-xs text-blue-100 leading-relaxed font-mono whitespace-pre-line">{{ sugerencia.respuesta_sugerida }}</div>
-                    <button type="button" onclick="copyAISuggestion()" class="mt-2 text-xs text-blue-400 hover:text-blue-300 font-semibold inline-flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">content_copy</span> Copiar borrador al editor oficial
-                    </button>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Hilo de Conversación con el Cliente y Calificación CSAT -->
-            <div class="bg-slate-900 border border-cyan-500/30 rounded-3xl p-6 shadow-2xl space-y-4">
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-cyan-400 text-2xl">forum</span>
-                        <div>
-                            <h3 class="font-bold text-white text-base">Hilo de Conversación en Vivo con el Cliente</h3>
-                            <p class="text-[11px] text-slate-400">Mensajes entre {{ ticket.cliente.nombre_completo if ticket.cliente else 'el Cliente' }}, el Asistente IA 24/7 y Soporte</p>
-                        </div>
-                    </div>
-                    {% if ticket.calificacion %}
-                    <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">
-                        ★ Calificación del Cliente: {{ ticket.calificacion.estrellas }}/5 {{ ('— ' ~ ticket.calificacion.comentario) if ticket.calificacion.comentario else '' }}
-                    </span>
-                    {% endif %}
-                </div>
-
-                <div class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
-                    {% if ticket.mensajes %}
-                        {% for m in ticket.mensajes %}
-                        <div class="p-3.5 rounded-2xl border text-xs
-                            {% if m.remitente_tipo == 'CLIENTE' %} bg-slate-950 border-cyan-500/40
-                            {% elif m.remitente_tipo == 'AGENTE' %} bg-emerald-950/30 border-emerald-500/40
-                            {% else %} bg-indigo-950/30 border-indigo-500/30 {% endif %}">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="font-bold
-                                    {% if m.remitente_tipo == 'CLIENTE' %} text-cyan-300
-                                    {% elif m.remitente_tipo == 'AGENTE' %} text-emerald-300
-                                    {% else %} text-indigo-300 {% endif %}">
-                                    [{{ m.remitente_tipo }}] {{ m.remitente_nombre }}
-                                </span>
-                                <span class="text-[10px] text-slate-500">{{ m.fecha_envio.strftime('%Y-%m-%d %H:%M:%S') }}</span>
-                            </div>
-                            <div class="text-slate-200 whitespace-pre-line leading-relaxed">{{ m.contenido }}</div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-xs text-slate-400 italic">No hay mensajes adicionales registrados aún.</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Formulario de Respuesta Oficial del Agente con Plantillas Rápidas -->
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
-                <div class="flex flex-wrap items-center justify-content-between justify-between gap-2 mb-3">
-                    <h3 class="font-bold text-white text-base flex items-center gap-2">
-                        <span class="material-symbols-outlined text-blue-400">rate_review</span> Emitir Respuesta Oficial Personalizada al Cliente
-                    </h3>
-                    <a href="/mis-tickets?codigo={{ ticket.codigo_seguimiento }}" target="_blank" class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">open_in_new</span> Ver como Cliente
-                    </a>
-                </div>
-
-                <!-- Plantillas Inteligentes de 1 Clic -->
-                <div class="mb-4">
-                    <span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Plantillas Rápidas de Respuesta al Cliente (1 Clic):</span>
-                    <div class="flex flex-wrap gap-2">
-                        <button type="button" onclick="applyAgentTemplate('resuelto')" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition">
-                            ✓ Confirmar Solución Definitiva
-                        </button>
-                        <button type="button" onclick="applyAgentTemplate('lote')" class="px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold transition">
-                            📂 Dictamen de Lote Documental
-                        </button>
-                        <button type="button" onclick="applyAgentTemplate('aclaracion')" class="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold transition">
-                            ❓ Solicitar Aclaración / Anexo
-                        </button>
-                        <button type="button" onclick="applyAgentTemplate('escalado')" class="px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-semibold transition">
-                            ⚡ Escalamiento Especializado N2
-                        </button>
-                    </div>
-                </div>
-
-                <form action="/agente/tickets/{{ ticket.id_ticket }}/responder" method="POST" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Respuesta Oficial (Se publicará en el portal del cliente y en el hilo en vivo)</label>
-                        <textarea id="editor-respuesta" name="respuesta_oficial" rows="8" required placeholder="Escriba la respuesta oficial aprobada..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:border-blue-500 focus:outline-none font-sans leading-relaxed">{{ ticket.respuesta_oficial or (sugerencia.respuesta_sugerida if sugerencia else '') }}</textarea>
-                    </div>
-
-                    <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
-                        <div class="flex items-center gap-4">
-                            <div>
-                                <label class="block text-[11px] font-medium text-slate-400 mb-1">Nuevo Estado del Ticket:</label>
-                                <select name="nuevo_estado" class="bg-slate-950 border border-slate-800 rounded-xl text-xs text-white px-3 py-2 focus:outline-none">
-                                    <option value="Resuelto" {% if ticket.estado == 'Resuelto' %}selected{% endif %}>Resuelto</option>
-                                    <option value="En Proceso" {% if ticket.estado == 'En Proceso' %}selected{% endif %}>En Proceso</option>
-                                    <option value="Cerrado" {% if ticket.estado == 'Cerrado' %}selected{% endif %}>Cerrado</option>
-                                </select>
-                            </div>
-                            <label class="flex items-center gap-2 text-xs text-slate-300 mt-4 cursor-pointer">
-                                <input type="checkbox" name="guardar_solucion" value="si" class="rounded bg-slate-950 border-slate-800 text-blue-600 focus:ring-0"/>
-                                <span>Guardar en la Base de Conocimiento para retroalimentar la IA</span>
-                            </label>
-                        </div>
-
-                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-2.5 rounded-xl transition text-xs shadow-lg shadow-emerald-600/20 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-sm">send</span>
-                            <span>Enviar Respuesta y Actualizar</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Columna Derecha: Asignación y Ficha del Cliente -->
-        <div class="space-y-6">
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
-                <h3 class="font-bold text-white text-sm mb-3 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-blue-400">person_add</span> Asignación de Agente
-                </h3>
-                <form action="/agente/tickets/{{ ticket.id_ticket }}/asignar" method="POST" class="space-y-3">
-                    <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">Agente Responsable:</label>
-                        <select name="id_agente" class="w-full bg-slate-950 border border-slate-800 rounded-xl text-xs text-white px-3 py-2 focus:outline-none">
-                            {% for a in agentes %}
-                            <option value="{{ a.id_agente }}" {% if ticket.id_agente_asignado == a.id_agente %}selected{% endif %}>{{ a.nombre_completo }} ({{ a.rol }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2 px-3 rounded-xl transition text-xs border border-slate-700">
-                        Actualizar Asignación
-                    </button>
-                </form>
-            </div>
-
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-3 text-xs">
-                <h3 class="font-bold text-white text-sm mb-2 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-blue-400">badge</span> Información del Cliente
-                </h3>
-                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-2">
-                    <div><span class="text-slate-400">Nombre:</span> <strong class="text-white block">{{ ticket.cliente.nombre_completo if ticket.cliente else 'N/A' }}</strong></div>
-                    <div><span class="text-slate-400">Correo:</span> <strong class="text-blue-400 block">{{ ticket.cliente.correo_electronico if ticket.cliente else 'N/A' }}</strong></div>
-                    <div><span class="text-slate-400">Teléfono:</span> <strong class="text-slate-200 block">{{ ticket.cliente.telefono or 'No registrado' }}</strong></div>
-                    <div><span class="text-slate-400">Empresa:</span> <strong class="text-slate-200 block">{{ ticket.cliente.empresa_organizacion or 'No registrada' }}</strong></div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        function copyAISuggestion() {
-            var text = document.getElementById("ai-suggestion-text").innerText;
-            document.getElementById("editor-respuesta").value = text;
-        }
-        function applyAgentTemplate(type) {
-            const cliente = {{ (ticket.cliente.nombre_completo if ticket.cliente else 'Estimado(a) Cliente') | tojson }};
-            const titulo = {{ ticket.titulo | tojson }};
-            const codigo = {{ ticket.codigo_seguimiento | tojson }};
-            const editor = document.getElementById("editor-respuesta");
-            const templates = {
-                resuelto: `Hola, ${cliente}:\n\nTe confirmamos que tu solicitud «${titulo}» (Ticket ${codigo}) ha sido RESUELTA satisfactoriamente por nuestro equipo especializado.\n\n✅ ACCIONES EJECUTADAS:\n1. Se validaron todos los parámetros y documentos asociados a tu expediente.\n2. Se aplicó la solución definitiva y verificamos la estabilidad del servicio.\n\nPuedes consultar este dictamen o dejarnos tu calificación de satisfacción en tu portal «Mis Tickets». ¡Estamos a tu servicio 24/7!`,
-                lote: `Hola, ${cliente}:\n\nHemos finalizado la auditoría detallada de tu lote de archivos adjuntos en el ticket ${codigo} («${titulo}»).\n\n📂 DICTAMEN DOCUMENTAL:\n• Todos los archivos (.PDF, .XLSX, .DOCX, .JPG) fueron procesados y conciliados sin inconsistencias críticas.\n• Los importes, tablas y respaldos quedaron aprobados e indexados en tu cuenta.\n\nQuedamos atentos por este mismo hilo si deseas anexar algún soporte adicional.`,
-                aclaracion: `Hola, ${cliente}:\n\nEstamos avanzando prioritariamente en tu solicitud «${titulo}» (${codigo}). Para completar la validación final, ¿podrías confirmarnos o adjuntar un comentario adicional desde tu vista «Mis Tickets»?\n\nTan pronto nos respondas en el hilo de conversación, daremos cierre inmediato a tu requerimiento.`,
-                escalado: `Hola, ${cliente}:\n\nTu caso «${titulo}» (${codigo}) ha sido priorizado con atención preferencial por nuestra mesa de Ingeniería Nivel 2.\n\n⚡ ESTADO ACTUAL:\n• Monitoreo dedicado activo sobre tu requerimiento.\n• Tiempo estimado de resolución definitiva: menor a 45 minutos.\n\nRecibirás la confirmación final directamente en este hilo de seguimiento.`
-            };
-            if (templates[type]) {
-                editor.value = templates[type];
-                editor.focus();
-            }
-        }
-    </script>
-</body>
-</html>
+    <div class="card">
+      <div class="card-head"><h3><i class="bi bi-paperclip"></i> Archivos y lotes</h3></div>
+      {% for lote in ticket.lotes %}
+        <div class="small muted" style="margin:.5rem 0 .4rem"><span class="mono">{{ lote.batch_code }}</span> · {{ lote.archivos_procesados }}/{{ lote.total_archivos }} · {{ lote.estado_make }}</div>
+        <div class="stack">{% for arch in lote.archivos %}
+          <div class="file"><div class="fi {{ 'pdf' if arch.extension == 'pdf' else ('xls' if arch.extension in ['xlsx','csv'] else ('doc' if arch.extension in ['docx','txt'] else 'img')) }}"><i class="bi bi-file-earmark"></i></div>
+            <div class="grow"><div class="fn" title="{{ arch.nombre_original }}">{{ arch.nombre_original }}</div>
+            <div class="fs">{{ arch.file_code }} · {{ (arch.tamano_bytes / 1024) | round(1) }} KB{% if arch.prioridad_detectada %} · <b>{{ arch.prioridad_detectada }}</b>{% endif %}</div>
+            {% if arch.recomendacion_ia %}<div class="tiny ink2" style="margin-top:.2rem">{{ arch.recomendacion_ia }}</div>{% endif %}</div></div>
+        {% endfor %}</div>
+      {% else %}<div class="empty" style="padding:1rem"><i class="bi bi-paperclip"></i>Sin archivos.</div>{% endfor %}
+      <hr style="border:0;border-top:1px solid var(--line);margin:1rem 0">
+      <label class="drop" id="drop" style="padding:1rem"><input type="file" multiple accept=".pdf,.xlsx,.docx,.txt,.csv,.jpg,.jpeg,.png,.webp,image/*">
+        <b class="small"><i class="bi bi-plus-circle"></i> Añadir archivos</b><div class="tiny muted">Arrastra o haz clic</div></label>
+      <div class="files" id="fileList"></div>
+      <button class="btn block" id="upBtn" style="margin-top:.7rem" hidden><i class="bi bi-cloud-arrow-up"></i> Subir al ticket</button>
+    </div>
+  </aside>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+(function () {
+  const ai = document.getElementById('aiText'), use = document.getElementById('useAi');
+  if (use) use.onclick = () => { const t = document.getElementById('resp'); t.value = ai.textContent.trim(); t.focus(); };
+  const btn = document.getElementById('upBtn');
+  const dz = UI.dropzone({ root: '#drop', list: '#fileList', max: 35, maxMB: 15, paste: false,
+    allowed: ['pdf', 'xlsx', 'docx', 'txt', 'csv', 'jpg', 'jpeg', 'png', 'webp'], onChange: (f) => (btn.hidden = !f.length) });
+  btn.onclick = async () => {
+    const fd = new FormData(); dz.files.forEach((f) => fd.append('archivos', f, f.name));
+    btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Subiendo…';
+    try { await UI.api('/agente/tickets/{{ ticket.id_ticket }}/subir-lote', { method: 'POST', body: fd }); UI.toast('Archivos subidos y procesados.', 'ok'); setTimeout(() => location.reload(), 600); }
+    catch (e) { UI.toast(e.message, 'bad'); btn.disabled = false; }
+  };
+})();
+</script>{% endblock %}

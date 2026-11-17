@@ -188,3 +188,33 @@ class DocumentoVision(Base):
     revisado_por = Column(String(120), nullable=True)
     fecha_carga = Column(DateTime, default=datetime.utcnow)
     fecha_revision = Column(DateTime, nullable=True)
+
+
+class Gasto(Base):
+    """Registro de compras/gastos creado automáticamente por el módulo de visión a partir de una factura o recibo."""
+    __tablename__ = "tbl_gasto"
+
+    id_gasto = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    codigo_documento = Column(String(30), unique=True, nullable=False, index=True)  # VIS-...
+    proveedor = Column(String(200), nullable=True)
+    nit = Column(String(30), nullable=True, index=True)
+    numero_documento = Column(String(60), nullable=True)
+    fecha_documento = Column(String(10), nullable=True)
+    monto_total = Column(Float, default=0.0)
+    moneda = Column(String(5), default="COP")
+    estado = Column(String(20), default="REGISTRADO")  # REGISTRADO | ANULADO
+    registrado_por = Column(String(120), nullable=True)
+    fecha_registro = Column(DateTime, default=datetime.utcnow)
+
+
+class AuditoriaIA(Base):
+    """Bitácora de auditoría de acciones de la IA y de acceso a datos sensibles (quién, qué, cuándo)."""
+    __tablename__ = "tbl_auditoria_ia"
+
+    id_auditoria = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    fecha = Column(DateTime, default=datetime.utcnow, index=True)
+    usuario = Column(String(120), nullable=True, index=True)
+    accion = Column(String(60), nullable=False, index=True)  # SUBIDA_IMAGEN, EXTRACCION_IA, CONFIRMACION, ACCESO_ARCHIVO...
+    recurso = Column(String(80), nullable=True, index=True)
+    proveedor = Column(String(30), nullable=True)
+    detalle = Column(Text, nullable=True)

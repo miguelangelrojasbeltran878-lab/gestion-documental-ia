@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Asistente IA{% endblock %}
+{% block crumb %}Operación / Asistente IA{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">LangGraph · memoria por usuario</div><h1>Asistente IA</h1>
+  <p>Consulta tickets, métricas y documentos. Puedes enviarle la foto de una factura y la procesa con el módulo de visión.</p></div>
+  <button class="btn ghost" id="forget"><i class="bi bi-eraser"></i> Olvidar conversación</button>
+</div>
+<div class="card chat">
+  <div class="chat-log" id="log"><div class="msg bot"><span class="who">Asistente</span>Hola {{ usuario_actual.nombre_completo.split(' ')[0] }} 👋 ¿En qué te ayudo? Puedo buscar tickets, resumir la carga del equipo o leer una factura que me envíes.</div></div>
+  <div class="chips" style="margin-top:.7rem">
+    <button class="chip" data-q="¿Cuántos tickets abiertos hay y cuáles son de prioridad alta?">Tickets abiertos</button>
+    <button class="chip" data-q="Dame un resumen de la operación de hoy">Resumen de hoy</button>
+    <button class="chip" data-q="¿Qué documentos de visión están pendientes de revisión?">Pendientes de revisión</button>
+  </div>
+  <div id="attach" class="files" style="margin-top:.5rem"></div>
+  <form class="chat-in" id="form">
+    <label class="btn ghost icon-btn" title="Adjuntar imagen o PDF" aria-label="Adjuntar" id="drop" style="cursor:pointer"><i class="bi bi-paperclip"></i><input type="file" id="fileIn" accept="image/*,.pdf" hidden></label>
+    <textarea id="msg" rows="1" placeholder="Escribe tu mensaje… (Enter para enviar, Shift+Enter nueva línea)" class="grow"></textarea>
+    <button class="btn" id="send" aria-label="Enviar"><i class="bi bi-send"></i></button>
+  </form>
+  <label class="check" style="margin-top:.5rem"><input type="checkbox" id="consent"><span class="small">Autorizo enviar imágenes adjuntas a un modelo externo (si no, se procesan localmente).</span></label>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  const { $, esc, toast } = UI;
+  const log = $('#log');
+  const dz = UI.dropzone({ root: '#drop', list: '#attach', max: 1, maxMB: 15, allowed: ['jpg', 'jpeg', 'png', 'webp', 'pdf'] });
+  const add = (cls, who, html) => { const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = '<span class="who">' + who + '</span>' + html; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; };
+  async function send(text) {
+    if (!text) return;
+    const file = dz.files[0];
+    add('me', 'Tú', esc(text) + (file ? '<div class="tiny" style="opacity:.8"><i class="bi bi-paperclip"></i> ' + esc(file.name) + '</div>' : ''));
+    const w = add('bot', 'Asistente', '<span class="typing"><span></span><span></span><span></span></span>');
+    const fd = new FormData(); fd.append('pregunta', text); fd.append('autoriza_envio_externo', $('#consent').checked ? 'true' : 'false');
+    if (file) fd.append('imagen', file, file.name);
+    dz.clear(); $('#send').disabled = true;
+    try {
+      const d = await UI.api('/api/v1/chatbot/mensaje', { method: 'POST', body: fd });
+      let extra = '';
+      if (d.vision) extra = '<div class="alert info small" style="margin-top:.5rem"><i class="bi bi-camera"></i><div>Documento <b>' + esc(d.vision.codigo) + '</b> · ' + esc(d.vision.estado.replace('_', ' ')) + ' · ' + Math.round((d.vision.confianza || 0) * 100) + '% confianza' + (d.vision.requiere_revision ? ' · <a href="/vision">revisar</a>' : '') + '</div></div>';
+      w.innerHTML = '<span class="who">Asistente' + (d.proveedor ? ' · ' + esc(d.proveedor) : '') + '</span>' + UI.md(d.respuesta || d.texto || '') + extra;
+    } catch (e) { w.className = 'msg sys'; w.innerHTML = 'No pude responder: ' + esc(e.message); }
+    $('#send').disabled = false; log.scrollTop = log.scrollHeight;
+  }
+  $('#form').onsubmit = (e) => { e.preventDefault(); const t = $('#msg').value.trim(); $('#msg').value = ''; send(t); };
+  $('#msg').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#form').requestSubmit(); } });
+  document.querySelectorAll('.chip[data-q]').forEach((c) => (c.onclick = () => send(c.dataset.q)));
+  $('#forget').onclick = async () => { await UI.api('/api/v1/chatbot/memoria', { method: 'DELETE' }); log.innerHTML = ''; add('sys', 'Sistema', 'Conversación reiniciada.'); };
+})();
+</script>
+{% endblock %}

@@ -101,3 +101,14 @@ def require_admin(user: models.UsuarioAgente = Depends(require_authenticated_age
             detail="Acceso restringido: requiere privilegios de Administrador."
         )
     return user
+
+
+def ensure_ticket_access(ticket: models.Ticket, user: models.UsuarioAgente) -> None:
+    """Evita que un agente acceda a expedientes que no tiene asignados."""
+    if user.rol == "Administrador":
+        return
+    if ticket.id_agente_asignado != user.id_agente:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tiene acceso a este expediente.",
+        )

@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+tickets.db
+storage/
+temp_batches/
+backups/
+scratch_*.py
+*.docx
+*.zip

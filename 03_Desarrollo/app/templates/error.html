@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ codigo }}{% endblock %}
+{% block content %}
+<div class="empty fade-in" style="padding:4rem 1rem">
+  <i class="bi {{ 'bi-shield-exclamation' if codigo == 403 else 'bi-compass' }}" style="font-size:3.2rem"></i>
+  <h1>{{ 'Acceso restringido' if codigo == 403 else 'No encontramos esa página' }}</h1>
+  <p>{{ detalle or ('No tienes permisos para ver este recurso.' if codigo == 403 else 'El recurso que buscas no existe o fue movido.') }}</p>
+  <a class="btn" href="/">Volver al inicio</a>
+</div>
+{% endblock %}

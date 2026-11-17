@@ -16,3 +16,23 @@ __pycache__/
 # Archivos temporales
 *.tmp
 temp_batches/
+
+# Datos personales y artefactos locales (Ley 1581)
+storage/
+03_Desarrollo/storage/
+temp_batches/
+03_Desarrollo/temp_batches/
+*.db
+backups/
+scratch_*.py
+benchmark/imagenes/
+benchmark/ground_truth.csv
+benchmark/resultados_*
+
+# Clave de sesión local generada automáticamente
+.secret_key
+03_Desarrollo/.secret_key
+
+*.db
+__pycache__/
+*.pyc

@@ -1,138 +1,48 @@
-<!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-950 text-slate-100">
-<head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Bandeja de Tickets - EduSupport AI Agentes</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <style>body { font-family: 'Inter', sans-serif; }</style>
-</head>
-<body class="min-h-full flex flex-col justify-between">
-    <!-- Navbar Header -->
-    <header class="border-b border-slate-800 bg-slate-900 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <a href="/agente/tickets" class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center border border-blue-500/30">
-                        <span class="material-symbols-outlined text-xl">smart_toy</span>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-white text-sm tracking-tight">EduSupport AI</h1>
-                        <p class="text-[10px] text-blue-400 font-semibold uppercase">Panel de Agentes</p>
-                    </div>
-                </a>
-                <nav class="hidden md:flex items-center gap-1 text-xs font-semibold">
-                    <a href="/agente/tickets" class="px-3 py-2 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30">Tickets</a>
-                    <a href="/admin/dashboard" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">Dashboard</a>
-                    <a href="/admin/reportes" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">Reportes</a>
-                    <a href="/admin/clientes" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">Clientes</a>
-                </nav>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-300 font-medium hidden sm:inline">Agente: Andrés Gómez</span>
-                <a href="/" class="text-xs font-semibold text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/20 bg-rose-500/10 flex items-center gap-1 transition">
-                    <span class="material-symbols-outlined text-sm">logout</span> Salir
-                </a>
-            </div>
-        </div>
-    </header>
+{% extends "base.html" %}
+{% block title %}Bandeja de tickets{% endblock %}
+{% block crumb %}Operación / Bandeja{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Bandeja inteligente</div><h1>Tickets</h1><p>{{ tickets | length }} resultado(s). Los casos de prioridad alta y sin respuesta se escalan automáticamente por el monitor de SLA.</p></div>
+  <a class="btn accent" href="/crear-solicitud"><i class="bi bi-plus-lg"></i> Nueva solicitud</a>
+</div>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-1">
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <div>
-                <h2 class="text-2xl font-bold text-white tracking-tight">Bandeja de Tickets de Soporte</h2>
-                <p class="text-xs text-slate-400 mt-1">Los tickets han sido analizados y priorizados por el módulo de IA (OpenAI / LangChain).</p>
-            </div>
+<div class="card flat row between" style="margin-bottom:1.1rem">
+  <div class="stack" style="--x:0">
+    <div class="small muted" style="margin-bottom:.3rem">Estado</div>
+    <div class="pill-filter">{% for e in ['Todos','Abierto','En Proceso','Resuelto','Cerrado'] %}<a class="{{ 'on' if estado_filtro == e }}" href="?estado={{ e }}&prioridad={{ prioridad_filtro }}">{{ e }}</a>{% endfor %}</div>
+  </div>
+  <div>
+    <div class="small muted" style="margin-bottom:.3rem">Prioridad</div>
+    <div class="pill-filter">{% for p in ['Todas','Alta','Media','Baja'] %}<a class="{{ 'on' if prioridad_filtro == p }}" href="?estado={{ estado_filtro }}&prioridad={{ p }}">{{ p }}</a>{% endfor %}</div>
+  </div>
+  <input type="text" id="q" placeholder="Buscar en la lista…" style="max-width:260px" aria-label="Buscar">
+</div>
 
-            <!-- Filters Form -->
-            <form action="/agente/tickets" method="GET" class="flex flex-wrap items-center gap-3 bg-slate-900 border border-slate-800 p-2 rounded-2xl">
-                <div class="flex items-center gap-2 px-3 py-1">
-                    <span class="text-xs font-bold text-slate-400">Estado:</span>
-                    <select name="estado" onchange="this.form.submit()" class="bg-slate-950 border border-slate-800 rounded-xl text-xs text-white px-3 py-1.5 focus:outline-none">
-                        <option value="Todos" {% if estado_filtro == 'Todos' %}selected{% endif %}>Todos los estados</option>
-                        <option value="Abierto" {% if estado_filtro == 'Abierto' %}selected{% endif %}>Abierto</option>
-                        <option value="En Proceso" {% if estado_filtro == 'En Proceso' %}selected{% endif %}>En Proceso</option>
-                        <option value="Resuelto" {% if estado_filtro == 'Resuelto' %}selected{% endif %}>Resuelto</option>
-                        <option value="Cerrado" {% if estado_filtro == 'Cerrado' %}selected{% endif %}>Cerrado</option>
-                    </select>
-                </div>
-
-                <div class="flex items-center gap-2 px-3 py-1">
-                    <span class="text-xs font-bold text-slate-400">Prioridad IA:</span>
-                    <select name="prioridad" onchange="this.form.submit()" class="bg-slate-950 border border-slate-800 rounded-xl text-xs text-white px-3 py-1.5 focus:outline-none">
-                        <option value="Todas" {% if prioridad_filtro == 'Todas' %}selected{% endif %}>Todas las prioridades</option>
-                        <option value="Alta" {% if prioridad_filtro == 'Alta' %}selected{% endif %}>Alta</option>
-                        <option value="Media" {% if prioridad_filtro == 'Media' %}selected{% endif %}>Media</option>
-                        <option value="Baja" {% if prioridad_filtro == 'Baja' %}selected{% endif %}>Baja</option>
-                    </select>
-                </div>
-            </form>
-        </div>
-
-        <!-- Tickets Table -->
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
-                        <tr>
-                            <th class="px-6 py-4">Código</th>
-                            <th class="px-6 py-4">Solicitud / Asunto</th>
-                            <th class="px-6 py-4">Cliente</th>
-                            <th class="px-6 py-4">Prioridad IA</th>
-                            <th class="px-6 py-4">Estado</th>
-                            <th class="px-6 py-4">Fecha Radicado</th>
-                            <th class="px-6 py-4 text-right">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800/60">
-                        {% for t in tickets %}
-                        <tr class="hover:bg-slate-800/40 transition">
-                            <td class="px-6 py-4 font-mono font-bold text-blue-400">{{ t.codigo_seguimiento }}</td>
-                            <td class="px-6 py-4">
-                                <div class="font-semibold text-white text-sm mb-0.5">{{ t.titulo }}</div>
-                                <div class="text-[11px] text-slate-400">{{ t.categoria_preliminar }}</div>
-                            </td>
-                            <td class="px-6 py-4 text-slate-300">
-                                <div class="font-medium text-slate-200">{{ t.cliente.nombre_completo if t.cliente else 'Cliente' }}</div>
-                                <div class="text-[11px] text-slate-500">{{ t.cliente.correo_electronico if t.cliente else '' }}</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold text-[11px]
-                                    {% if t.prioridad == 'Alta' %} bg-rose-500/10 text-rose-400 border border-rose-500/30
-                                    {% elif t.prioridad == 'Media' %} bg-amber-500/10 text-amber-400 border border-amber-500/30
-                                    {% else %} bg-slate-800 text-slate-300 border border-slate-700 {% endif %}">
-                                    <span class="w-1.5 h-1.5 rounded-full {% if t.prioridad == 'Alta' %}bg-rose-400{% elif t.prioridad == 'Media' %}bg-amber-400{% else %}bg-slate-400{% endif %}"></span>
-                                    {{ t.prioridad }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold
-                                    {% if t.estado == 'Abierto' %} bg-amber-500/10 text-amber-400 border border-amber-500/20
-                                    {% elif t.estado == 'En Proceso' %} bg-blue-500/10 text-blue-400 border border-blue-500/20
-                                    {% else %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 {% endif %}">
-                                    {{ t.estado }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-slate-400">{{ t.fecha_creacion.strftime('%Y-%m-%d %H:%M') }}</td>
-                            <td class="px-6 py-4 text-right">
-                                <a href="/agente/tickets/{{ t.id_ticket }}" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-3 py-1.5 rounded-xl transition text-xs shadow-md shadow-blue-600/20">
-                                    <span class="material-symbols-outlined text-sm">smart_toy</span>
-                                    <span>Atender con IA</span>
-                                </a>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-slate-500 text-sm">No se encontraron tickets en esta vista.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-</body>
-</html>
+{% if tickets %}
+<div class="table-wrap"><table id="tbl">
+  <thead><tr><th>Código</th><th>Asunto</th><th>Cliente</th><th>Categoría</th><th>Prioridad</th><th>Estado</th><th>Creado</th></tr></thead>
+  <tbody>
+  {% for t in tickets %}
+    <tr class="clickable" data-href="/agente/tickets/{{ t.id_ticket }}">
+      <td class="mono"><a href="/agente/tickets/{{ t.id_ticket }}">{{ t.codigo_seguimiento }}</a></td>
+      <td><b>{{ t.titulo }}</b></td>
+      <td>{{ t.cliente.nombre_completo if t.cliente else '—' }}<div class="tiny muted">{{ t.cliente.correo_electronico if t.cliente else '' }}</div></td>
+      <td>{{ t.categoria_preliminar }}</td>
+      <td><span class="badge {{ {'Alta':'bad','Media':'warn','Baja':'ok'}.get(t.prioridad,'') }}">{{ t.prioridad }}</span></td>
+      <td><span class="badge {{ {'Abierto':'info','En Proceso':'warn','Resuelto':'ok'}.get(t.estado,'') }}">{{ t.estado }}</span></td>
+      <td class="muted small">{{ t.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="card empty"><i class="bi bi-inbox"></i>No hay tickets con estos filtros.<div style="margin-top:.8rem"><a class="btn" href="/crear-solicitud">Crear una solicitud</a></div></div>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script>
+document.getElementById('q')?.addEventListener('input', (e) => {
+  const v = e.target.value.toLowerCase();
+  document.querySelectorAll('#tbl tbody tr').forEach((tr) => (tr.hidden = !tr.textContent.toLowerCase().includes(v)));
+});
+</script>{% endblock %}

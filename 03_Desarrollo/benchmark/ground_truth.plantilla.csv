@@ -1,0 +1,4 @@
+archivo,tipo,condicion,emisor_o_proveedor,identificacion_fiscal_nit,numero_documento,fecha_emision,monto_total
+foto_01.jpg,factura,limpia,Papelería El Tintero S.A.S.,900123456-1,FE-20451,2026-03-15,1190000
+foto_02.jpg,factura,inclinada,Ferretería Los Andes,830456789-3,FE-1087,2026-04-02,285450
+foto_03.jpg,recibo_pago,poca_luz,,,,2026-04-10,45000

@@ -1,0 +1,148 @@
+INFO:     Started server process [18592]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:49270 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49273 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49274 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60907 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60907 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63704 - "POST /login HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:63704 - "GET /agente/tickets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49324 - "GET /agente/tickets/13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56212 - "POST /agente/tickets/13/responder HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:56212 - "GET /agente/tickets/13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56212 - "GET /agente/tickets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56212 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56212 - "GET /crear-solicitud HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61531 - "POST /crear-solicitud HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\uvicorn\protocols\http\h11_impl.py", line 416, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\applications.py", line 96, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Lenovo\OneDrive\Documentos\Proyecto_Aplicaciones_Empresariales\03_Desarrollo\app\main.py", line 66, in add_security_headers
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py", line 1281, in handle
+    await super().handle(scope, receive, send)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\routing.py", line 280, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py", line 354, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\Lenovo\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\Lenovo\OneDrive\Documentos\Proyecto_Aplicaciones_Empresariales\03_Desarrollo\app\main.py", line 648, in page_crear_solicitud_submit
+    ticket = crud.create_ticket_with_ai(db, ticket_in)
+  File "C:\Users\Lenovo\OneDrive\Documentos\Proyecto_Aplicaciones_Empresariales\03_Desarrollo\app\crud.py", line 73, in create_ticket_with_ai
+    ai_result = automation_engine.ejecutar_servicio_con_auditoria(
+                ^^^^^^^^^^^^^^^^^
+NameError: name 'automation_engine' is not defined
+INFO:     127.0.0.1:56459 - "GET /mis-tickets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56459 - "GET /mis-tickets?codigo=TCK-2026-0893 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60650 - "POST /api/v1/chatbot-archivos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62075 - "POST /api/v1/chatbot-archivos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58783 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58790 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58790 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54723 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59508 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59508 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52627 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52627 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52627 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59508 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59508 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59508 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52627 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52627 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52627 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59508 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59508 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59508 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52627 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63237 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63237 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62507 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62507 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62507 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63237 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63237 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63237 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62507 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62507 - "GET /crear-solicitud HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62507 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63237 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57374 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57374 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59511 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59511 - "GET /mis-tickets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59511 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57374 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57374 - "GET /crear-solicitud HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57374 - "GET /static/ui.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59511 - "GET /static/ui.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59511 - "GET /login HTTP/1.1" 405 Method Not Allowed

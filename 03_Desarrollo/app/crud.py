@@ -3,7 +3,7 @@ import string
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import extract
-from . import models, schemas, ai_module
+from . import models, schemas, ai_module, automation_engine
 
 def generate_codigo_seguimiento() -> str:
     num = "".join(random.choices(string.digits, k=4))
@@ -60,13 +60,23 @@ def create_ticket_with_ai(db: Session, ticket_data: schemas.TicketCreate):
         for s in soluciones
     ]
 
-    # 4. Run Customer-Centric AI Analysis
-    ai_result = ai_module.analyze_and_suggest(
-        titulo=ticket_data.titulo,
-        descripcion=ticket_data.descripcion,
-        soluciones_kb=soluciones_list,
-        nombre_cliente=ticket_data.nombre_cliente,
-        empresa=ticket_data.empresa or ""
+    # 4. Run Customer-Centric AI Analysis con Auditoría del Motor Autónomo (Componente 1)
+    def _run_ai_classification():
+        return ai_module.analyze_and_suggest(
+            titulo=ticket_data.titulo,
+            descripcion=ticket_data.descripcion,
+            soluciones_kb=soluciones_list,
+            nombre_cliente=ticket_data.nombre_cliente,
+            empresa=ticket_data.empresa or ""
+        )
+
+    ai_result = automation_engine.ejecutar_servicio_con_auditoria(
+        db=db,
+        flujo="RADICACION_TICKETS_24_7",
+        proceso="CLASIFICACION_Y_SLA_IA",
+        func=_run_ai_classification,
+        usuario=ticket_data.correo_cliente,
+        entrada_resumen=f"Título: {ticket_data.titulo[:80]} | Cat. Prelim: {ticket_data.categoria_preliminar}"
     )
 
     # 5. Respect client's selected category if present, otherwise use AI category
@@ -127,12 +137,14 @@ def get_ticket_by_codigo(db: Session, codigo: str):
 def get_ticket_by_id(db: Session, id_ticket: int):
     return db.query(models.Ticket).filter(models.Ticket.id_ticket == id_ticket).first()
 
-def get_tickets(db: Session, estado: str = None, prioridad: str = None):
+def get_tickets(db: Session, estado: str = None, prioridad: str = None, id_agente: int = None):
     query = db.query(models.Ticket)
     if estado and estado != "Todos":
         query = query.filter(models.Ticket.estado == estado)
     if prioridad and prioridad != "Todas":
         query = query.filter(models.Ticket.prioridad == prioridad)
+    if id_agente is not None:
+        query = query.filter(models.Ticket.id_agente_asignado == id_agente)
     return query.order_by(models.Ticket.fecha_creacion.desc()).all()
 
 def asignar_ticket(db: Session, id_ticket: int, id_agente: int):

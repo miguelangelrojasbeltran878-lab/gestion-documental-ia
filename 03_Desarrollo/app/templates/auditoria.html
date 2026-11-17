@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Auditoría{% endblock %}
+{% block crumb %}Administración / Auditoría{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Trazabilidad</div><h1>Auditoría de IA y datos</h1><p>Quién hizo qué y cuándo: cargas de imágenes, extracciones, confirmaciones y accesos a archivos.</p></div>
+</div>
+<div class="card flat" style="margin-bottom:1.1rem"><div class="small muted" style="margin-bottom:.3rem">Filtrar por acción</div>
+  <div class="pill-filter"><a class="{{ 'on' if not accion_filtro }}" href="?">Todas</a>{% for a in acciones %}<a class="{{ 'on' if accion_filtro == a }}" href="?accion={{ a }}">{{ a }}</a>{% endfor %}</div></div>
+{% if registros %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Recurso</th><th>IA</th><th>Detalle</th></tr></thead>
+  <tbody>{% for a in registros %}<tr><td class="muted small" style="white-space:nowrap">{{ a.fecha.strftime('%d/%m/%Y %H:%M:%S') }}</td><td>{{ a.usuario or '—' }}</td>
+    <td><span class="badge brand">{{ a.accion }}</span></td><td class="mono small">{{ a.recurso or '—' }}</td><td class="mono small">{{ a.proveedor or '—' }}</td><td class="small ink2">{{ (a.detalle or '')[:140] }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="card empty"><i class="bi bi-shield-check"></i>No hay registros de auditoría con este filtro.</div>{% endif %}
+
+<div class="card-head" style="margin-top:2rem"><h2>Gastos creados desde facturas</h2></div>
+{% if gastos %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Documento</th><th>Proveedor</th><th>NIT</th><th>N.º</th><th>Fecha</th><th class="right">Total</th><th>Registró</th></tr></thead>
+  <tbody>{% for g in gastos %}<tr><td class="mono">{{ g.codigo_documento }}</td><td>{{ g.proveedor or '—' }}</td><td>{{ g.nit or '—' }}</td><td>{{ g.numero_documento or '—' }}</td><td>{{ g.fecha_documento or '—' }}</td>
+    <td class="right"><b>{{ '{:,.0f}'.format(g.monto_total or 0) }}</b> {{ g.moneda }}</td><td class="small muted">{{ g.registrado_por }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="card empty"><i class="bi bi-receipt"></i>Aún no hay gastos. Se crean al confirmar una factura en <a href="/vision">Visión</a>.</div>{% endif %}
+{% endblock %}
