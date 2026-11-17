@@ -20,6 +20,13 @@ def init_db():
         db.add_all(agentes)
         db.commit()
 
+    # Contraseña de demostración (documentada en el README); se puede cambiar con SEED_PASSWORD.
+    from app import auth
+    clave = os.getenv("SEED_PASSWORD", "Password123*")
+    for u in db.query(models.UsuarioAgente).filter(models.UsuarioAgente.password_hash.is_(None)).all():
+        u.password_hash = auth.hash_password(clave)
+    db.commit()
+
     # Seed Clientes if empty
     if db.query(models.Cliente).count() == 0:
         print("Seeding initial clients...")
